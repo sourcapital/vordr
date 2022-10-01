@@ -65,9 +65,10 @@ const node = new Cosmos(
 )
 */
 
-const node = new Ethereum(
-    'https://ethereum.ninerealms.com',
-    8545
+const node = new Cosmos(
+    'https://rpc.ninerealms.com',
+    27147,
+    AppChain.Thorchain
 )
 
 const isUp = await node.isUp()

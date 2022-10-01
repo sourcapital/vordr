@@ -6,7 +6,8 @@ import {handleError} from './Error.js'
 
 export enum Chain {
     Cosmos = 'cosmos',
-    Binance = 'binance'
+    Binance = 'binance',
+    Thorchain = 'thorchain'
 }
 
 const getChainName = (chain: Chain) => {
@@ -79,6 +80,10 @@ export class Cosmos extends Node {
                 case Chain.Binance:
                     apiResponse = await axios.get('https://dex.binance.org/api/v1/node-info')
                     apiBlockHeight = apiResponse.data.sync_info.latest_block_height
+                    break
+                case Chain.Thorchain:
+                    apiResponse = await this.query('status', 'https://rpc.ninerealms.com')
+                    apiBlockHeight = Number(apiResponse.data.result.sync_info.latest_block_height)
                     break
             }
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
