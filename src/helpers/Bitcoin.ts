@@ -1,8 +1,8 @@
 import axios from 'axios'
-import {Node} from './Node.js'
-import {handleError} from './Error.js'
 import _ from 'underscore'
 import numeral from 'numeral'
+import {Node} from './Node.js'
+import {handleError} from './Error.js'
 
 export class Bitcoin extends Node {
     private port: number
@@ -98,7 +98,6 @@ export class Bitcoin extends Node {
             const topThreeVersions = _.first(Object.keys(apiVersions).sort((a, b) => {
                 return apiVersions[b] - apiVersions[a]
             }), 3)
-
             await log.debug(`${Bitcoin.name}:${this.isVersionUpToDate.name}: topThreeVersions = ['${topThreeVersions.join('\',\'')}']`)
 
             // Check if node version is in the top 3 of the network

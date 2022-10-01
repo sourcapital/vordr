@@ -1,7 +1,7 @@
 import axios from 'axios'
+import numeral from 'numeral'
 import {Node} from './Node.js'
 import {handleError} from './Error.js'
-import numeral from 'numeral'
 
 export class Ethereum extends Node {
     private port: number
@@ -45,6 +45,7 @@ export class Ethereum extends Node {
             }
 
             const isSyncing = nodeResponse.data.result
+            await log.debug(`${Ethereum.name}:${this.isSynced.name}: isSyncing = ${isSyncing}`)
 
             // Check if node is still syncing
             if (isSyncing) {
