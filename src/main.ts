@@ -1,9 +1,9 @@
 import {Logtail} from '@logtail/node'
 import {config} from './config.js'
 import {Log} from './helpers/Log.js'
-import {Bitcoin, Fork} from './helpers/Bitcoin.js'
-import {Ethereum} from './helpers/Ethereum.js'
-import {AppChain, Cosmos} from './helpers/Cosmos.js'
+import {Bitcoin, Chain as Fork} from './helpers/Bitcoin.js'
+import {Ethereum, Chain as EvmChain} from './helpers/Ethereum.js'
+import {Cosmos, Chain as AppChain} from './helpers/Cosmos.js'
 
 // Setup logger
 global.log = new Log(
@@ -47,16 +47,27 @@ const node = new Ethereum(
     8545
 )
 
+const node = new Ethereum(
+    'https://avalanche.ninerealms.com/ext/bc/C/rpc',
+    9650,
+    EvmChain.Avalanche
+)
+
 const node = new Cosmos(
     'https://gaia.ninerealms.com',
     26657
 )
-*/
 
 const node = new Cosmos(
     'https://binance.ninerealms.com',
     27147,
     AppChain.Binance
+)
+*/
+
+const node = new Ethereum(
+    'https://ethereum.ninerealms.com',
+    8545
 )
 
 const isUp = await node.isUp()
