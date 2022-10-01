@@ -1,5 +1,5 @@
-import {Logtail} from "@logtail/node"
-import {config} from "../config.js"
+import {Logtail} from '@logtail/node'
+import {config} from '../config.js'
 
 export class Log {
     private log: Logtail

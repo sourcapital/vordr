@@ -23,7 +23,6 @@ export class Bitcoin extends Node {
             const nodeResponse = await this.query('getblockchaininfo')
             await log.debug(`${Bitcoin.name}:${this.isUp.name}: HTTP status code: ${nodeResponse.status}`)
 
-            // Validate http response status
             if (nodeResponse.status !== 200) {
                 await log.error(`${Bitcoin.name}:${this.isUp.name}: Node does not respond!`)
                 return false
@@ -45,7 +44,6 @@ export class Bitcoin extends Node {
             const nodeResponse = await this.query('getblockchaininfo')
             await log.debug(`${Bitcoin.name}:${this.isSynced.name}: HTTP status code: ${nodeResponse.status}`)
 
-            // Validate http response status
             if (nodeResponse.status !== 200) {
                 await log.error(`${Bitcoin.name}:${this.isSynced.name}: Node does not respond!`)
                 return false
@@ -53,7 +51,7 @@ export class Bitcoin extends Node {
 
             const nodeBlockHeight = nodeResponse.data.result.blocks
             const nodeHeaderHeight = nodeResponse.data.result.headers
-            await log.debug(`${Bitcoin.name}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')}, nodeHeaderHeight = ${numeral(nodeHeaderHeight).format('0,0')}`)
+            await log.debug(`${Bitcoin.name}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')} | nodeHeaderHeight = ${numeral(nodeHeaderHeight).format('0,0')}`)
 
             // Check if node is still syncing
             if (nodeBlockHeight < nodeHeaderHeight) {
@@ -61,10 +59,8 @@ export class Bitcoin extends Node {
                 return false
             }
 
-            // Get api data
-            const apiResponse = await axios.get('https://api.blockchair.com/bitcoin/nodes')
-            const apiBlockHeights = apiResponse.data.data.heights
-            const apiBlockHeight = Object.keys(apiBlockHeights).reduce((a, b) => apiBlockHeights[a] > apiBlockHeights[b] ? a : b)
+            const apiResponse = await axios.get('https://api.blockchair.com/bitcoin/stats')
+            const apiBlockHeight = apiResponse.data.data.best_block_height
             await log.debug(`${Bitcoin.name}:${this.isSynced.name}: apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
             // Check if node is behind the api consensus block height
@@ -89,7 +85,6 @@ export class Bitcoin extends Node {
             const nodeResponse = await this.query('getnetworkinfo')
             await log.debug(`${Bitcoin.name}:${this.isVersionUpToDate.name}: HTTP status code: ${nodeResponse.status}`)
 
-            // Validate http response status
             if (nodeResponse.status !== 200) {
                 await log.error(`${Bitcoin.name}:${this.isVersionUpToDate.name}: Node does not respond!`)
                 return false
@@ -98,7 +93,6 @@ export class Bitcoin extends Node {
             const nodeVersion = nodeResponse.data.result.subversion
             await log.debug(`${Bitcoin.name}:${this.isVersionUpToDate.name}: nodeVersion = '${nodeVersion}'`)
 
-            // Get api data
             const apiResponse = await axios.get('https://api.blockchair.com/bitcoin/nodes')
             const apiVersions = apiResponse.data.data.versions
             const topThreeVersions = _.first(Object.keys(apiVersions).sort((a, b) => {
@@ -122,12 +116,12 @@ export class Bitcoin extends Node {
         return true
     }
 
-    async query(method: string): Promise<any> {
-        return await axios.post(this.host, {
+    async query(method: string, host?: string, params?: []): Promise<any> {
+        return await axios.post(host ?? this.host, {
             jsonrpc: '1.0',
-            id: method,
+            id: 1,
             method: method,
-            params: []
+            params: params ?? []
         }, {
             auth: {
                 username: this.username,
