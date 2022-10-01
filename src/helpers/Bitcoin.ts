@@ -4,27 +4,40 @@ import numeral from 'numeral'
 import {Node} from './Node.js'
 import {handleError} from './Error.js'
 
+export enum Fork {
+    Bitcoin = 'bitcoin',
+    Litecoin = 'litecoin',
+    BitcoinCash = 'bitcoin-cash',
+    Dogecoin = 'dogecoin'
+}
+
+const getEnumKey = (value: Fork) => {
+    return Object.entries(Fork).find(([, val]) => val === value)?.[0]
+}
+
 export class Bitcoin extends Node {
     private port: number
     private readonly username: string
     private readonly password: string
+    private readonly fork: Fork
 
-    constructor(host: string, port: number, username: string, password: string) {
+    constructor(host: string, port: number, username: string, password: string, fork?: Fork) {
         super(host)
         this.port = port
         this.username = username
         this.password = password
+        this.fork = fork ?? Fork.Bitcoin
     }
 
     async isUp(): Promise<boolean> {
-        await log.info(`${Bitcoin.name}: Checking if the node is up ...`)
+        await log.info(`${getEnumKey(this.fork)}: Checking if the node is up ...`)
 
         try {
             const nodeResponse = await this.query('getblockchaininfo')
-            await log.debug(`${Bitcoin.name}:${this.isUp.name}: HTTP status code: ${nodeResponse.status}`)
+            await log.debug(`${getEnumKey(this.fork)}:${this.isUp.name}: HTTP status code: ${nodeResponse.status}`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Bitcoin.name}:${this.isUp.name}: Node does not respond!`)
+                await log.error(`${getEnumKey(this.fork)}:${this.isUp.name}: Node does not respond!`)
                 return false
             }
         } catch (error) {
@@ -32,40 +45,40 @@ export class Bitcoin extends Node {
             return false
         }
 
-        await log.info(`${Bitcoin.name}: Node is up!`)
+        await log.info(`${getEnumKey(this.fork)}: Node is up!`)
 
         return true
     }
 
     async isSynced(): Promise<boolean> {
-        await log.info(`${Bitcoin.name}: Checking if the node is synced ...`)
+        await log.info(`${getEnumKey(this.fork)}: Checking if the node is synced ...`)
 
         try {
             const nodeResponse = await this.query('getblockchaininfo')
-            await log.debug(`${Bitcoin.name}:${this.isSynced.name}: HTTP status code: ${nodeResponse.status}`)
+            await log.debug(`${getEnumKey(this.fork)}:${this.isSynced.name}: HTTP status code: ${nodeResponse.status}`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Bitcoin.name}:${this.isSynced.name}: Node does not respond!`)
+                await log.error(`${getEnumKey(this.fork)}:${this.isSynced.name}: Node does not respond!`)
                 return false
             }
 
             const nodeBlockHeight = nodeResponse.data.result.blocks
             const nodeHeaderHeight = nodeResponse.data.result.headers
-            await log.debug(`${Bitcoin.name}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')} | nodeHeaderHeight = ${numeral(nodeHeaderHeight).format('0,0')}`)
+            await log.debug(`${getEnumKey(this.fork)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')} | nodeHeaderHeight = ${numeral(nodeHeaderHeight).format('0,0')}`)
 
             // Check if node is still syncing
             if (nodeBlockHeight < nodeHeaderHeight) {
-                await log.warn(`${Bitcoin.name}:${this.isSynced.name}: nodeBlockHeight < nodeHeaderHeight: ${numeral(nodeBlockHeight).format('0,0')} < ${numeral(nodeHeaderHeight).format('0,0')}`)
+                await log.warn(`${getEnumKey(this.fork)}:${this.isSynced.name}: nodeBlockHeight < nodeHeaderHeight: ${numeral(nodeBlockHeight).format('0,0')} < ${numeral(nodeHeaderHeight).format('0,0')}`)
                 return false
             }
 
-            const apiResponse = await axios.get('https://api.blockchair.com/bitcoin/stats')
+            const apiResponse = await axios.get(`https://api.blockchair.com/${this.fork}/stats`)
             const apiBlockHeight = apiResponse.data.data.best_block_height
-            await log.debug(`${Bitcoin.name}:${this.isSynced.name}: apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
+            await log.debug(`${getEnumKey(this.fork)}:${this.isSynced.name}: apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
             // Check if node is behind the api consensus block height
             if (nodeBlockHeight < apiBlockHeight) {
-                await log.warn(`${Bitcoin.name}:${this.isSynced.name}: nodeBlockHeight < apiBlockHeight: ${numeral(nodeBlockHeight).format('0,0')} < ${numeral(apiBlockHeight).format('0,0')}`)
+                await log.warn(`${getEnumKey(this.fork)}:${this.isSynced.name}: nodeBlockHeight < apiBlockHeight: ${numeral(nodeBlockHeight).format('0,0')} < ${numeral(apiBlockHeight).format('0,0')}`)
                 return false
             }
         } catch (error) {
@@ -73,36 +86,36 @@ export class Bitcoin extends Node {
             return false
         }
 
-        await log.info(`${Bitcoin.name}: Node is synced!`)
+        await log.info(`${getEnumKey(this.fork)}: Node is synced!`)
 
         return true
     }
 
     async isVersionUpToDate(): Promise<boolean> {
-        await log.info(`${Bitcoin.name}: Checking if node version is up-to-date ...`)
+        await log.info(`${getEnumKey(this.fork)}: Checking if node version is up-to-date ...`)
 
         try {
             const nodeResponse = await this.query('getnetworkinfo')
-            await log.debug(`${Bitcoin.name}:${this.isVersionUpToDate.name}: HTTP status code: ${nodeResponse.status}`)
+            await log.debug(`${getEnumKey(this.fork)}:${this.isVersionUpToDate.name}: HTTP status code: ${nodeResponse.status}`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Bitcoin.name}:${this.isVersionUpToDate.name}: Node does not respond!`)
+                await log.error(`${getEnumKey(this.fork)}:${this.isVersionUpToDate.name}: Node does not respond!`)
                 return false
             }
 
             const nodeVersion = nodeResponse.data.result.subversion
-            await log.debug(`${Bitcoin.name}:${this.isVersionUpToDate.name}: nodeVersion = '${nodeVersion}'`)
+            await log.debug(`${getEnumKey(this.fork)}:${this.isVersionUpToDate.name}: nodeVersion = '${nodeVersion}'`)
 
-            const apiResponse = await axios.get('https://api.blockchair.com/bitcoin/nodes')
+            const apiResponse = await axios.get(`https://api.blockchair.com/${this.fork}/nodes`)
             const apiVersions = apiResponse.data.data.versions
             const topThreeVersions = _.first(Object.keys(apiVersions).sort((a, b) => {
                 return apiVersions[b] - apiVersions[a]
             }), 3)
-            await log.debug(`${Bitcoin.name}:${this.isVersionUpToDate.name}: topThreeVersions = ['${topThreeVersions.join('\',\'')}']`)
+            await log.debug(`${getEnumKey(this.fork)}:${this.isVersionUpToDate.name}: topThreeVersions = ['${topThreeVersions.join('\',\'')}']`)
 
             // Check if node version is in the top 3 of the network
             if (!_.contains(topThreeVersions, nodeVersion)) {
-                await log.warn(`${Bitcoin.name}:${this.isVersionUpToDate.name}: nodeVersion not in topThreeVersions: '${nodeVersion}' not in ['${topThreeVersions.join('\',\'')}']`)
+                await log.warn(`${getEnumKey(this.fork)}:${this.isVersionUpToDate.name}: nodeVersion not in topThreeVersions: '${nodeVersion}' not in ['${topThreeVersions.join('\',\'')}']`)
                 return false
             }
         } catch (error) {
@@ -110,7 +123,7 @@ export class Bitcoin extends Node {
             return false
         }
 
-        await log.info(`${Bitcoin.name}: Node version is up-to-date!`)
+        await log.info(`${getEnumKey(this.fork)}: Node version is up-to-date!`)
 
         return true
     }
