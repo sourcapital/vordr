@@ -3,7 +3,7 @@ import {config} from './config.js'
 import {Log} from './helpers/Log.js'
 import {Bitcoin, Fork} from './helpers/Bitcoin.js'
 import {Ethereum} from './helpers/Ethereum.js'
-import {Binance} from './helpers/Binance.js'
+import {AppChain, Cosmos} from './helpers/Cosmos.js'
 
 // Setup logger
 global.log = new Log(
@@ -16,16 +16,6 @@ const node = new Bitcoin(
     8332,
     'thorchain',
     'password'
-)
-
-const node = new Ethereum(
-    'https://ethereum.ninerealms.com',
-    8545
-)
-
-const node = new Binance(
-    'https://binance.ninerealms.com',
-    27147
 )
 
 const node = new Bitcoin(
@@ -43,7 +33,6 @@ const node = new Bitcoin(
     'password',
     Fork.BitcoinCash
 )
-*/
 
 const node = new Bitcoin(
     'https://dogecoin.ninerealms.com',
@@ -51,6 +40,23 @@ const node = new Bitcoin(
     'thorchain',
     'password',
     Fork.Dogecoin
+)
+
+const node = new Ethereum(
+    'https://ethereum.ninerealms.com',
+    8545
+)
+
+const node = new Cosmos(
+    'https://gaia.ninerealms.com',
+    26657
+)
+*/
+
+const node = new Cosmos(
+    'https://binance.ninerealms.com',
+    27147,
+    AppChain.Binance
 )
 
 const isUp = await node.isUp()

@@ -108,14 +108,14 @@ export class Bitcoin extends Node {
 
             const apiResponse = await axios.get(`https://api.blockchair.com/${this.fork}/nodes`)
             const apiVersions = apiResponse.data.data.versions
-            const topThreeVersions = _.first(Object.keys(apiVersions).sort((a, b) => {
+            const topVersions = _.first(Object.keys(apiVersions).sort((a, b) => {
                 return apiVersions[b] - apiVersions[a]
             }), 3)
-            await log.debug(`${getEnumKey(this.fork)}:${this.isVersionUpToDate.name}: topThreeVersions = ['${topThreeVersions.join('\',\'')}']`)
+            await log.debug(`${getEnumKey(this.fork)}:${this.isVersionUpToDate.name}: topVersions = ['${topVersions.join('\',\'')}']`)
 
-            // Check if node version is in the top 3 of the network
-            if (!_.contains(topThreeVersions, nodeVersion)) {
-                await log.warn(`${getEnumKey(this.fork)}:${this.isVersionUpToDate.name}: nodeVersion not in topThreeVersions: '${nodeVersion}' not in ['${topThreeVersions.join('\',\'')}']`)
+            // Check if node version is in the top versions of the network
+            if (!_.contains(topVersions, nodeVersion)) {
+                await log.warn(`${getEnumKey(this.fork)}:${this.isVersionUpToDate.name}: nodeVersion not in topVersions: '${nodeVersion}' not in ['${topVersions.join('\',\'')}']`)
                 return false
             }
         } catch (error) {
