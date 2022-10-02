@@ -1,7 +1,7 @@
 import axios, {AxiosResponse} from 'axios'
 import numeral from 'numeral'
 import {Node} from './Node.js'
-import {handleError} from './Error.js'
+import {handleError} from '../helpers/Error.js'
 
 export enum Chain {
     Ethereum = 'ethereum',

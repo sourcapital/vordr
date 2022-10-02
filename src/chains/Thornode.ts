@@ -1,6 +1,6 @@
 import axios from 'axios'
 import _ from 'underscore'
-import {handleError} from './Error.js'
+import {handleError} from '../helpers/Error.js'
 import {Cosmos, Chain} from './Cosmos.js'
 
 export class Thornode extends Cosmos {
