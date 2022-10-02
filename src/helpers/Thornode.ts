@@ -1,4 +1,5 @@
 import axios from 'axios'
+import _ from 'underscore'
 import {handleError} from './Error.js'
 import {Cosmos, Chain} from './Cosmos.js'
 
@@ -53,13 +54,26 @@ export class Thornode extends Cosmos {
                 return false
             }
 
-            // TODO: Check if this is the correct way to get the versions
             const nodeVersion = nodeResponse.data.current
-            const latestVersion = nodeResponse.data.next
-            await log.debug(`${Thornode.name}:${this.isVersionUpToDate.name}: nodeVersion = ${nodeVersion} | latestVersion = ${latestVersion}`)
+            await log.debug(`${Thornode.name}:${this.isVersionUpToDate.name}: nodeVersion = ${nodeVersion}`)
 
-            if (nodeVersion < latestVersion) {
-                await log.warn(`${Thornode.name}:${this.isVersionUpToDate.name}: nodeVersion < latestVersion: '${nodeVersion}' < '${latestVersion}'`)
+            const networkResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
+            await log.debug(`${Thornode.name}:${this.isVersionUpToDate.name}: HTTP status code: ${networkResponse.status}`)
+
+            if (networkResponse.status !== 200) {
+                await log.error(`${Thornode.name}:${this.isVersionUpToDate.name}: Node does not respond!`)
+                return false
+            }
+
+            const activeNodes = _.filter(networkResponse.data, (node) => {
+                return node.status.toLowerCase() === 'active'
+            })
+            const versions = _.map(activeNodes, (node) => { return node.version })
+            const topVersion = _.max(versions, (version) => { return Number(version.replace(/\./g, '')) })
+            await log.debug(`${Thornode.name}:${this.isVersionUpToDate.name}: topVersion = ${topVersion}`)
+
+            if (nodeVersion < topVersion) {
+                await log.warn(`${Thornode.name}:${this.isVersionUpToDate.name}: nodeVersion < topVersion: '${nodeVersion}' < '${topVersion}'`)
                 return false
             }
         } catch (error) {

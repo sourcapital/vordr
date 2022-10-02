@@ -127,7 +127,6 @@ export class Cosmos extends Node {
             }))
             await log.debug(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: topVersion = '${topVersion}'`)
 
-            // Check if node is up-to-date
             if (nodeVersion !== topVersion) {
                 await log.warn(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: nodeVersion !== topVersion: '${nodeVersion}' !== '${topVersion}'`)
                 return false
