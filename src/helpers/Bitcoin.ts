@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, {AxiosResponse} from 'axios'
 import _ from 'underscore'
 import numeral from 'numeral'
 import {Node} from './Node.js'
@@ -16,14 +16,12 @@ const getChainName = (chain: Chain) => {
 }
 
 export class Bitcoin extends Node {
-    private port: number
     private readonly username: string
     private readonly password: string
     private readonly chain: Chain
 
-    constructor(host: string, port: number, username: string, password: string, chain?: Chain) {
-        super(host)
-        this.port = port
+    constructor(url: string, port: number, username: string, password: string, chain?: Chain) {
+        super(url, port)
         this.username = username
         this.password = password
         this.chain = chain ?? Chain.Bitcoin
@@ -128,8 +126,8 @@ export class Bitcoin extends Node {
         return true
     }
 
-    async query(method: string, host?: string, params?: []): Promise<any> {
-        return await axios.post(host ?? this.host, {
+    protected async query(method: string, url?: string, params?: []): Promise<AxiosResponse> {
+        return await axios.post(url ?? this.url, {
             jsonrpc: '1.0',
             id: 1,
             method: method,

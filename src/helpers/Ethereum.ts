@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, {AxiosResponse} from 'axios'
 import numeral from 'numeral'
 import {Node} from './Node.js'
 import {handleError} from './Error.js'
@@ -13,12 +13,10 @@ const getChainName = (chain: Chain) => {
 }
 
 export class Ethereum extends Node {
-    private port: number
     private readonly chain: Chain
 
     constructor(host: string, port: number, chain?: Chain) {
-        super(host)
-        this.port = port
+        super(host, port)
         this.chain = chain ?? Chain.Ethereum
     }
 
@@ -135,8 +133,8 @@ export class Ethereum extends Node {
         return true
     }
 
-    protected async query(method: string, host?: string, params?: []): Promise<any> {
-        return await axios.post(host ?? this.host, {
+    protected async query(method: string, url?: string, params?: []): Promise<AxiosResponse> {
+        return await axios.post(url ?? this.url, {
             jsonrpc: '2.0',
             id: 1,
             method: method,

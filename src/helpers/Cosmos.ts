@@ -15,12 +15,10 @@ const getChainName = (chain: Chain) => {
 }
 
 export class Cosmos extends Node {
-    private port: number
     private readonly chain: Chain
 
-    constructor(host: string, port: number, chain?: Chain) {
-        super(host)
-        this.port = port
+    constructor(url: string, port: number, chain?: Chain) {
+        super(url, port)
         this.chain = chain ?? Chain.Cosmos
     }
 
@@ -28,7 +26,7 @@ export class Cosmos extends Node {
         await log.info(`${getChainName(this.chain)}: Checking if the node is up ...`)
 
         try {
-            const nodeResponse = await this.query('health')
+            const nodeResponse = await axios.get(`${this.url}/health`)
             await log.debug(`${getChainName(this.chain)}:${this.isUp.name}: HTTP status code: ${nodeResponse.status}`)
 
             if (nodeResponse.status !== 200) {
@@ -49,7 +47,7 @@ export class Cosmos extends Node {
         await log.info(`${getChainName(this.chain)}: Checking if the node is synced ...`)
 
         try {
-            const nodeResponse = await this.query('status')
+            const nodeResponse = await axios.get(`${this.url}/status`)
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: HTTP status code: ${nodeResponse.status}`)
 
             if (nodeResponse.status !== 200) {
@@ -82,7 +80,7 @@ export class Cosmos extends Node {
                     apiBlockHeight = apiResponse.data.sync_info.latest_block_height
                     break
                 case Chain.Thorchain:
-                    apiResponse = await this.query('status', 'https://rpc.ninerealms.com')
+                    apiResponse = await axios.get(`https://rpc.ninerealms.com/status`)
                     apiBlockHeight = Number(apiResponse.data.result.sync_info.latest_block_height)
                     break
             }
@@ -107,7 +105,7 @@ export class Cosmos extends Node {
         await log.info(`${getChainName(this.chain)}: Checking if node version is up-to-date ...`)
 
         try {
-            let nodeResponse = await this.query('status')
+            let nodeResponse = await axios.get(`${this.url}/status`)
             await log.debug(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: HTTP status code: ${nodeResponse.status}`)
 
             if (nodeResponse.status !== 200) {
@@ -118,7 +116,7 @@ export class Cosmos extends Node {
             const nodeVersion = nodeResponse.data.result.node_info.version
             await log.debug(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: nodeVersion = '${nodeVersion}'`)
 
-            nodeResponse = await this.query('net_info')
+            nodeResponse = await axios.get(`${this.url}/net_info`)
             const nodePeers = nodeResponse.data.result.peers
             const nodePeerVersions = _.map(nodePeers, (peer) => {
                 return peer.node_info.version
@@ -142,9 +140,5 @@ export class Cosmos extends Node {
         await log.info(`${getChainName(this.chain)}: Node version is up-to-date!`)
 
         return true
-    }
-
-    async query(method: string, host?: string, params?: []): Promise<any> {
-        return await axios.get(`${host ?? this.host}/${method}`)
     }
 }

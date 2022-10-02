@@ -1,12 +1,13 @@
 export abstract class Node {
-    protected host: string
+    protected url: string
+    protected port: number
 
-    protected constructor(host: string) {
-        this.host = host
+    protected constructor(url: string, port: number) {
+        this.url = url
+        this.port = port
     }
 
     abstract isUp(): Promise<boolean>
     abstract isSynced(): Promise<boolean>
     abstract isVersionUpToDate(): Promise<boolean>
-    protected abstract query(method: string, host?: string, params?: []): Promise<any>
 }
