@@ -1,7 +1,7 @@
 FROM node:16.17 as builder
 
 # Create app directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Install app dependencies
 COPY package.json yarn.lock ./
@@ -15,13 +15,13 @@ RUN yarn build
 FROM node:16.17-slim
 
 # Create app directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Install app dependencies
 COPY package.json yarn.lock ./
 
 RUN yarn install --production --frozen-lockfile
 
-COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /app/dist ./dist
 
 CMD yarn run start
