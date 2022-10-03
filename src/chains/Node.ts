@@ -7,6 +7,7 @@ export abstract class Node {
         this.port = port
     }
 
+    abstract initHeartbeats(): void
     abstract isUp(): Promise<boolean>
     abstract isSynced(): Promise<boolean>
     abstract isVersionUpToDate(): Promise<boolean>

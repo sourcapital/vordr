@@ -3,6 +3,7 @@ import _ from 'underscore'
 import numeral from 'numeral'
 import {Node} from './Node.js'
 import {handleError} from '../helpers/Error.js'
+import {HeartbeatType} from '../helpers/BetterUptime.js'
 
 export enum Chain {
     Bitcoin = 'bitcoin',
@@ -11,8 +12,8 @@ export enum Chain {
     Dogecoin = 'dogecoin'
 }
 
-const getChainName = (chain: Chain) => {
-    return Object.entries(Chain).find(([, val]) => val === chain)?.[0]
+const getChainName = (chain: Chain): string => {
+    return Object.entries(Chain).find(([, val]) => val === chain)?.[0]!
 }
 
 export class Bitcoin extends Node {
@@ -25,6 +26,12 @@ export class Bitcoin extends Node {
         this.username = username
         this.password = password
         this.chain = chain ?? Chain.Bitcoin
+    }
+    
+    async initHeartbeats() {
+        await betterUptime.getHeartbeat(getChainName(this.chain), HeartbeatType.HEALTH)
+        await betterUptime.getHeartbeat(getChainName(this.chain), HeartbeatType.SYNC_STATUS)
+        await betterUptime.getHeartbeat(getChainName(this.chain), HeartbeatType.VERSION)
     }
 
     async isUp(): Promise<boolean> {
@@ -44,6 +51,7 @@ export class Bitcoin extends Node {
         }
 
         await log.info(`${getChainName(this.chain)}: Node is up!`)
+        await betterUptime.sendHeartbeat(getChainName(this.chain), HeartbeatType.HEALTH)
 
         return true
     }
@@ -85,6 +93,7 @@ export class Bitcoin extends Node {
         }
 
         await log.info(`${getChainName(this.chain)}: Node is synced!`)
+        await betterUptime.sendHeartbeat(getChainName(this.chain), HeartbeatType.SYNC_STATUS)
 
         return true
     }
@@ -122,6 +131,7 @@ export class Bitcoin extends Node {
         }
 
         await log.info(`${getChainName(this.chain)}: Node version is up-to-date!`)
+        await betterUptime.sendHeartbeat(getChainName(this.chain), HeartbeatType.VERSION)
 
         return true
     }

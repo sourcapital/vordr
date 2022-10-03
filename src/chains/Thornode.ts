@@ -2,6 +2,7 @@ import axios from 'axios'
 import _ from 'underscore'
 import {handleError} from '../helpers/Error.js'
 import {Cosmos, Chain} from './Cosmos.js'
+import {HeartbeatType} from '../helpers/BetterUptime.js'
 
 export class Thornode extends Cosmos {
     private readonly thorRpcUrl: string
@@ -11,6 +12,12 @@ export class Thornode extends Cosmos {
         super(cosmosRpcUrl, cosmosRpcPort, Chain.Thorchain)
         this.thorRpcUrl = thorRpcUrl
         this.thorRpcPort = thorRpcPort
+    }
+
+    async initHeartbeats() {
+        await betterUptime.getHeartbeat(Thornode.name, HeartbeatType.HEALTH)
+        await betterUptime.getHeartbeat(Thornode.name, HeartbeatType.VERSION)
+        await super.initHeartbeats()
     }
 
     async isUp(): Promise<boolean> {
@@ -38,6 +45,7 @@ export class Thornode extends Cosmos {
         }
 
         await log.info(`${Thornode.name}: Node is up!`)
+        await betterUptime.sendHeartbeat(Thornode.name, HeartbeatType.HEALTH)
 
         return await super.isUp()
     }
@@ -82,6 +90,7 @@ export class Thornode extends Cosmos {
         }
 
         await log.info(`${Thornode.name}: Node version is up-to-date!`)
+        await betterUptime.sendHeartbeat(Thornode.name, HeartbeatType.VERSION)
 
         return await super.isVersionUpToDate()
     }
