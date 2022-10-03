@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vordr
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vordr
+  namespace: vordr
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: vordr
+  template:
+    metadata:
+      labels:
+        app: vordr
+    spec:
+      containers:
+        - name: vordr
+          image: vordr/vordr:latest
+          imagePullPolicy: Always
+          env:
+            - name: NODE_ENV
+              value: 'production'
+            - name: LOGTAIL_API_KEY
+              value: '{LOGTAIL_API_KEY}'
+            - name: BETTERUPTIME_API_KEY
+              value: '{BETTERUPTIME_API_KEY}'
