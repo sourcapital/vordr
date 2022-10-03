@@ -333,5 +333,7 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,yarn,webstorm,node
 
 .idea
+src/*.js
+src/*.js.map
 src/**/*.js
 src/**/*.js.map
