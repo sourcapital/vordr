@@ -16,8 +16,8 @@ const getChainName = (chain: Chain): string => {
 export class Ethereum extends Node {
     private readonly chain: Chain
 
-    constructor(host: string, port: number, chain?: Chain) {
-        super(host, port)
+    constructor(host: string, chain?: Chain) {
+        super(host)
         this.chain = chain ?? Chain.Ethereum
     }
 

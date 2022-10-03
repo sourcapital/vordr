@@ -17,17 +17,13 @@ const getChainName = (chain: Chain): string => {
 }
 
 export class Bitcoin extends Node {
-    private readonly username: string
-    private readonly password: string
     private readonly chain: Chain
 
-    constructor(url: string, port: number, username: string, password: string, chain?: Chain) {
-        super(url, port)
-        this.username = username
-        this.password = password
+    constructor(url: string, chain?: Chain) {
+        super(url)
         this.chain = chain ?? Chain.Bitcoin
     }
-    
+
     async initHeartbeats() {
         await betterUptime.getHeartbeat(getChainName(this.chain), HeartbeatType.HEALTH)
         await betterUptime.getHeartbeat(getChainName(this.chain), HeartbeatType.SYNC_STATUS)
@@ -136,17 +132,27 @@ export class Bitcoin extends Node {
         return true
     }
 
-    protected async query(method: string, url?: string, params?: []): Promise<AxiosResponse> {
-        return await axios.post(url ?? this.url, {
+    protected async query(method: string, params?: []): Promise<AxiosResponse> {
+        let url = this.url
+        let config = undefined
+
+        // Check if the url contains username and password for authentication
+        const regex = /([a-z]*):([a-z]*)@([a-zA-Z0-9\/:.-]+)$/g
+        if (url.match(regex)) {
+            config = {
+                auth: {
+                    username: url.replace(regex, '$1'),
+                    password: url.replace(regex, '$2')
+                }
+            }
+            url = url.replace(regex, '$3')
+        }
+
+        return await axios.post(url, {
             jsonrpc: '1.0',
             id: 1,
             method: method,
-            params: params ?? []
-        }, {
-            auth: {
-                username: this.username,
-                password: this.password
-            }
-        })
+            params: params ?? [],
+        }, config ?? {})
     }
 }

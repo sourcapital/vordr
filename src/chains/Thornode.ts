@@ -6,12 +6,10 @@ import {HeartbeatType} from '../helpers/BetterUptime.js'
 
 export class Thornode extends Cosmos {
     private readonly thorRpcUrl: string
-    private readonly thorRpcPort: number
 
-    constructor(thorRpcUrl: string, thorRpcPort: number, cosmosRpcUrl: string, cosmosRpcPort: number) {
-        super(cosmosRpcUrl, cosmosRpcPort, Chain.Thorchain)
-        this.thorRpcUrl = thorRpcUrl
-        this.thorRpcPort = thorRpcPort
+    constructor(thorUrl: string, cosmosUrl: string) {
+        super(cosmosUrl, Chain.Thorchain)
+        this.thorRpcUrl = thorUrl
     }
 
     async initHeartbeats() {

@@ -1,10 +1,8 @@
 export abstract class Node {
     protected url: string
-    protected port: number
 
-    protected constructor(url: string, port: number) {
+    protected constructor(url: string) {
         this.url = url
-        this.port = port
     }
 
     abstract initHeartbeats(): void

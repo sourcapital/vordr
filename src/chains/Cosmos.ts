@@ -18,8 +18,8 @@ const getChainName = (chain: Chain): string => {
 export class Cosmos extends Node {
     private readonly chain: Chain
 
-    constructor(url: string, port: number, chain?: Chain) {
-        super(url, port)
+    constructor(url: string, chain?: Chain) {
+        super(url)
         this.chain = chain ?? Chain.Cosmos
     }
 
