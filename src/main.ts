@@ -24,7 +24,8 @@ global.betterUptime = new BetterUptime(config.betterUptime.apiKey)
 let nodes: [Thornode, Binance, Bitcoin, Ethereum, Litecoin, BitcoinCash, Dogecoin, Cosmos, Avalanche]
 if (config.nodeENV === 'production') {
     nodes = [
-        new Thornode('http://thornode.thornode:1317', 'http://thornode:27147'),
+        // Prefix all kube-dns hostnames with the 'thornode' namespace in order to reach them
+        new Thornode('http://thornode.thornode:1317', 'http://thornode.thornode:27147'),
         new Binance('http://thornode.binance-daemon:27147'),
         new Bitcoin('http://thorchain:password@thornode.bitcoin-daemon:8332'),
         new Ethereum('http://thornode.ethereum-daemon:8545'),
