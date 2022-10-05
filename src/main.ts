@@ -24,15 +24,15 @@ global.betterUptime = new BetterUptime(config.betterUptime.apiKey)
 let nodes: [Thornode, Binance, Bitcoin, Ethereum, Litecoin, BitcoinCash, Dogecoin, Cosmos, Avalanche]
 if (config.nodeENV === 'production') {
     nodes = [
-        new Thornode('http://thornode:1317', 'http://thornode:27147'),
-        new Binance('http://binance-daemon:27147'),
-        new Bitcoin('http://thorchain:password@bitcoin-daemon:8332'),
-        new Ethereum('http://ethereum-daemon:8545'),
-        new Litecoin('http://thorchain:password@litecoin-daemon:9332'),
-        new BitcoinCash('http://thorchain:password@bitcoin-cash-daemon:8332'),
-        new Dogecoin('http://thorchain:password@dogecoin-daemon:22555'),
-        new Cosmos('http://gaia-daemon:26657'),
-        new Avalanche('http://avalanche-daemon:9650')
+        new Thornode('http://thornode.thornode:1317', 'http://thornode:27147'),
+        new Binance('http://thornode.binance-daemon:27147'),
+        new Bitcoin('http://thorchain:password@thornode.bitcoin-daemon:8332'),
+        new Ethereum('http://thornode.ethereum-daemon:8545'),
+        new Litecoin('http://thorchain:password@thornode.litecoin-daemon:9332'),
+        new BitcoinCash('http://thorchain:password@thornode.bitcoin-cash-daemon:8332'),
+        new Dogecoin('http://thorchain:password@thornode.dogecoin-daemon:22555'),
+        new Cosmos('http://thornode.gaia-daemon:26657'),
+        new Avalanche('http://thornode.avalanche-daemon:9650/ext/bc/C/rpc')
     ]
 } else {
     nodes = [
