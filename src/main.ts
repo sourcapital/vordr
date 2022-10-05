@@ -5,6 +5,7 @@ import {config} from './config.js'
 import {Log} from './helpers/Log.js'
 import {BetterUptime} from './helpers/BetterUptime.js'
 import {handleError} from './helpers/Error.js'
+import {Node} from './chains/Node.js'
 import {Bitcoin} from './chains/Bitcoin.js'
 import {Litecoin} from './chains/Litecoin.js'
 import {BitcoinCash} from './chains/BitcoinCash.js'
@@ -21,7 +22,7 @@ global.log = new Log(new Logtail(config.logtail.apiKey))
 global.betterUptime = new BetterUptime(config.betterUptime.apiKey)
 
 // Init nodes
-let nodes: [Thornode, Binance, Bitcoin, Ethereum, Litecoin, BitcoinCash, Dogecoin, Cosmos, Avalanche]
+let nodes: Array<Node>
 if (config.nodeENV === 'production') {
     nodes = [
         // Suffix all kube-dns hostnames with the 'thornode' namespace in order to reach them

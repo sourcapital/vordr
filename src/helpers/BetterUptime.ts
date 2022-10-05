@@ -149,12 +149,12 @@ export class BetterUptime {
         return group
     }
 
-    private async getAllHeartbeats(): Promise<[Heartbeat]> {
+    private async getAllHeartbeats(): Promise<Array<Heartbeat>> {
         const response = await this.send('GET', 'heartbeats')
         return response.data.data
     }
 
-    private async getAllHeartbeatGroups(): Promise<[HeartbeatGroup]> {
+    private async getAllHeartbeatGroups(): Promise<Array<HeartbeatGroup>> {
         const response = await this.send('GET', 'heartbeat-groups')
         return response.data.data
     }
