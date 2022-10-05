@@ -1,7 +1,7 @@
 import {Ethereum, Chain} from './Ethereum.js'
 
 export class Avalanche extends Ethereum {
-    constructor(host: string) {
-        super(host, Chain.Avalanche)
+    constructor(url: string) {
+        super(url, 1, Chain.Avalanche)
     }
 }

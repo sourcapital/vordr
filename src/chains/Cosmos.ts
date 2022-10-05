@@ -18,8 +18,8 @@ const getChainName = (chain: Chain): string => {
 export class Cosmos extends Node {
     private readonly chain: Chain
 
-    constructor(url: string, chain?: Chain) {
-        super(url)
+    constructor(url: string, blockDelay?: number, chain?: Chain) {
+        super(url, blockDelay ?? 1)
         this.chain = chain ?? Chain.Cosmos
     }
 
@@ -97,7 +97,7 @@ export class Cosmos extends Node {
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
             // Check if node is behind the api block height
-            if (nodeBlockHeight < apiBlockHeight) {
+            if (nodeBlockHeight < apiBlockHeight - this.blockDelay) {
                 await log.warn(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight < apiBlockHeight: ${numeral(nodeBlockHeight).format('0,0')} < ${numeral(apiBlockHeight).format('0,0')}`)
                 return false
             }

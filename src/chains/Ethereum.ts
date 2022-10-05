@@ -16,8 +16,8 @@ const getChainName = (chain: Chain): string => {
 export class Ethereum extends Node {
     private readonly chain: Chain
 
-    constructor(host: string, chain?: Chain) {
-        super(host)
+    constructor(url: string, blockDelay?: number, chain?: Chain) {
+        super(url, blockDelay ?? 1)
         this.chain = chain ?? Chain.Ethereum
     }
 
@@ -99,7 +99,7 @@ export class Ethereum extends Node {
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
             // Check if node is behind the api block height
-            if (nodeBlockHeight < apiBlockHeight) {
+            if (nodeBlockHeight < apiBlockHeight - this.blockDelay) {
                 await log.warn(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight < apiBlockHeight: ${numeral(nodeBlockHeight).format('0,0')} < ${numeral(apiBlockHeight).format('0,0')}`)
                 return false
             }
