@@ -21,17 +21,32 @@ global.log = new Log(new Logtail(config.logtail.apiKey))
 global.betterUptime = new BetterUptime(config.betterUptime.apiKey)
 
 // Init nodes
-const nodes = [
-    new Thornode('https://thornode.ninerealms.com', 'https://rpc.ninerealms.com'),
-    new Binance('https://binance.ninerealms.com'),
-    new Bitcoin('thorchain:password@https://bitcoin.ninerealms.com'),
-    new Ethereum('https://ethereum.ninerealms.com'),
-    new Litecoin('thorchain:password@https://litecoin.ninerealms.com'),
-    new BitcoinCash('thorchain:password@https://bitcoin-cash.ninerealms.com'),
-    new Dogecoin('thorchain:password@https://dogecoin.ninerealms.com'),
-    new Cosmos('https://gaia.ninerealms.com'),
-    new Avalanche('https://avalanche.ninerealms.com/ext/bc/C/rpc')
-]
+let nodes: [Thornode, Binance, Bitcoin, Ethereum, Litecoin, BitcoinCash, Dogecoin, Cosmos, Avalanche]
+if (config.nodeENV === 'production') {
+    nodes = [
+        new Thornode('thornode:1317', 'thornode:27147'),
+        new Binance('binance-daemon:27147'),
+        new Bitcoin('thorchain:password@bitcoin-daemon:8332'),
+        new Ethereum('ethereum-daemon:8545'),
+        new Litecoin('thorchain:password@litecoin-daemon:9332'),
+        new BitcoinCash('thorchain:password@bitcoin-cash-daemon:8332'),
+        new Dogecoin('thorchain:password@dogecoin-daemon:22555'),
+        new Cosmos('gaia-daemon:26657'),
+        new Avalanche('avalanche-daemon:9650')
+    ]
+} else {
+    nodes = [
+        new Thornode('https://thornode.ninerealms.com', 'https://rpc.ninerealms.com'),
+        new Binance('https://binance.ninerealms.com'),
+        new Bitcoin('thorchain:password@https://bitcoin.ninerealms.com'),
+        new Ethereum('https://ethereum.ninerealms.com'),
+        new Litecoin('thorchain:password@https://litecoin.ninerealms.com'),
+        new BitcoinCash('thorchain:password@https://bitcoin-cash.ninerealms.com'),
+        new Dogecoin('thorchain:password@https://dogecoin.ninerealms.com'),
+        new Cosmos('https://gaia.ninerealms.com'),
+        new Avalanche('https://avalanche.ninerealms.com/ext/bc/C/rpc')
+    ]
+}
 
 // Init heartbeats in correct sequence
 for (const node of nodes) {
