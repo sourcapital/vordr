@@ -96,7 +96,7 @@ export class BetterUptime {
             const response = await this.send('POST', 'heartbeats', {
                 name: `${name} ${type}`,
                 period: 60, // 1min
-                grace: 180, // 3min
+                grace: 300, // 5min
                 heartbeat_group_id: group.id
             })
 
