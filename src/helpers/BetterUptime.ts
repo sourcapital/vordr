@@ -165,7 +165,6 @@ export class BetterUptime {
         while (true) {
             try {
                 const url = `https://betteruptime.com/api/v2/${endpoint}`
-                await log.debug(`${BetterUptime.name}:${this.send.name}: method = ${method} | url = ${url}`)
 
                 response = await axios.request({
                     url: url,
