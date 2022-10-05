@@ -24,15 +24,15 @@ global.betterUptime = new BetterUptime(config.betterUptime.apiKey)
 let nodes: [Thornode, Binance, Bitcoin, Ethereum, Litecoin, BitcoinCash, Dogecoin, Cosmos, Avalanche]
 if (config.nodeENV === 'production') {
     nodes = [
-        new Thornode('thornode:1317', 'thornode:27147'),
-        new Binance('binance-daemon:27147'),
-        new Bitcoin('thorchain:password@bitcoin-daemon:8332'),
-        new Ethereum('ethereum-daemon:8545'),
-        new Litecoin('thorchain:password@litecoin-daemon:9332'),
-        new BitcoinCash('thorchain:password@bitcoin-cash-daemon:8332'),
-        new Dogecoin('thorchain:password@dogecoin-daemon:22555'),
-        new Cosmos('gaia-daemon:26657'),
-        new Avalanche('avalanche-daemon:9650')
+        new Thornode('http://thornode:1317', 'http://thornode:27147'),
+        new Binance('http://binance-daemon:27147'),
+        new Bitcoin('http://thorchain:password@bitcoin-daemon:8332'),
+        new Ethereum('http://ethereum-daemon:8545'),
+        new Litecoin('http://thorchain:password@litecoin-daemon:9332'),
+        new BitcoinCash('http://thorchain:password@bitcoin-cash-daemon:8332'),
+        new Dogecoin('http://thorchain:password@dogecoin-daemon:22555'),
+        new Cosmos('http://gaia-daemon:26657'),
+        new Avalanche('http://avalanche-daemon:9650')
     ]
 } else {
     nodes = [
@@ -49,6 +49,7 @@ if (config.nodeENV === 'production') {
 }
 
 // Init heartbeats in correct sequence
+await log.info('Initializing heartbeats ...')
 for (const node of nodes) {
     await node.initHeartbeats()
 }
