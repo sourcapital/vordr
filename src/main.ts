@@ -24,16 +24,16 @@ global.betterUptime = new BetterUptime(config.betterUptime.apiKey)
 let nodes: [Thornode, Binance, Bitcoin, Ethereum, Litecoin, BitcoinCash, Dogecoin, Cosmos, Avalanche]
 if (config.nodeENV === 'production') {
     nodes = [
-        // Prefix all kube-dns hostnames with the 'thornode' namespace in order to reach them
+        // Suffix all kube-dns hostnames with the 'thornode' namespace in order to reach them
         new Thornode('http://thornode.thornode:1317', 'http://thornode.thornode:27147'),
-        new Binance('http://thornode.binance-daemon:27147'),
-        new Bitcoin('http://thorchain:password@thornode.bitcoin-daemon:8332'),
-        new Ethereum('http://thornode.ethereum-daemon:8545'),
-        new Litecoin('http://thorchain:password@thornode.litecoin-daemon:9332'),
-        new BitcoinCash('http://thorchain:password@thornode.bitcoin-cash-daemon:8332'),
-        new Dogecoin('http://thorchain:password@thornode.dogecoin-daemon:22555'),
-        new Cosmos('http://thornode.gaia-daemon:26657'),
-        new Avalanche('http://thornode.avalanche-daemon:9650/ext/bc/C/rpc')
+        new Binance('http://binance-daemon.thornode:27147'),
+        new Bitcoin('http://thorchain:password@bitcoin-daemon.thornode:8332'),
+        new Ethereum('http://ethereum-daemon.thornode:8545'),
+        new Litecoin('http://thorchain:password@litecoin-daemon.thornode:9332'),
+        new BitcoinCash('http://thorchain:password@bitcoin-cash-daemon.thornode:8332'),
+        new Dogecoin('http://thorchain:password@dogecoin-daemon.thornode:22555'),
+        new Cosmos('http://gaia-daemon.thornode:26657'),
+        new Avalanche('http://avalanche-daemon.thornode:9650/ext/bc/C/rpc')
     ]
 } else {
     nodes = [
