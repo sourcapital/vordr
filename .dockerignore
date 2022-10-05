@@ -9,3 +9,4 @@ src/*.js.map
 src/**/*.js
 src/**/*.js.map
 dist
+k8s-*.yaml
