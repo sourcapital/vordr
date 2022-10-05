@@ -1,4 +1,4 @@
-FROM node:16.17 as builder
+FROM --platform=linux/amd64 node:16.17 as builder
 
 # Create app directory
 WORKDIR /app
@@ -12,7 +12,7 @@ COPY . .
 
 RUN yarn build
 
-FROM node:16.17-slim
+FROM --platform=linux/amd64 node:16.17-slim
 
 # Create app directory
 WORKDIR /app
