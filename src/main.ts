@@ -40,11 +40,11 @@ if (config.nodeENV === 'production') {
     nodes = [
         new Thornode('https://thornode.ninerealms.com', 'https://rpc.ninerealms.com'),
         new Binance('https://binance.ninerealms.com'),
-        new Bitcoin('thorchain:password@https://bitcoin.ninerealms.com'),
+        new Bitcoin('https://thorchain:password@bitcoin.ninerealms.com'),
         new Ethereum('https://ethereum.ninerealms.com'),
-        new Litecoin('thorchain:password@https://litecoin.ninerealms.com'),
-        new BitcoinCash('thorchain:password@https://bitcoin-cash.ninerealms.com'),
-        new Dogecoin('thorchain:password@https://dogecoin.ninerealms.com'),
+        new Litecoin('https://thorchain:password@litecoin.ninerealms.com'),
+        new BitcoinCash('https://thorchain:password@bitcoin-cash.ninerealms.com'),
+        new Dogecoin('https://thorchain:password@dogecoin.ninerealms.com'),
         new Cosmos('https://gaia.ninerealms.com'),
         new Avalanche('https://avalanche.ninerealms.com/ext/bc/C/rpc')
     ]

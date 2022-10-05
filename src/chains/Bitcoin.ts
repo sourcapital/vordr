@@ -139,15 +139,15 @@ export class Bitcoin extends Node {
         let config = undefined
 
         // Check if the url contains username and password for authentication
-        const regex = /([a-z]*):([a-z]*)@([a-zA-Z0-9\/:.-]+)$/g
+        const regex = /(https*:\/\/)([a-z]*):([a-z]*)@([a-zA-Z0-9\/:.-]+)$/g
         if (url.match(regex)) {
             config = {
                 auth: {
-                    username: url.replace(regex, '$1'),
-                    password: url.replace(regex, '$2')
+                    username: url.replace(regex, '$2'),
+                    password: url.replace(regex, '$3')
                 }
             }
-            url = url.replace(regex, '$3')
+            url = url.replace(regex, '$1') + url.replace(regex, '$4')
         }
 
         return await axios.post(url, {
