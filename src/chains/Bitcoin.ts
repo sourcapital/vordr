@@ -25,9 +25,11 @@ export class Bitcoin extends Node {
     }
 
     async initHeartbeats() {
-        await betterUptime.getHeartbeat(getChainName(this.chain), HeartbeatType.HEALTH)
-        await betterUptime.getHeartbeat(getChainName(this.chain), HeartbeatType.SYNC_STATUS)
-        await betterUptime.getHeartbeat(getChainName(this.chain), HeartbeatType.VERSION)
+        await betterUptime.initHeartbeats(getChainName(this.chain), [
+            HeartbeatType.HEALTH,
+            HeartbeatType.SYNC_STATUS,
+            HeartbeatType.VERSION
+        ])
     }
 
     async isUp(): Promise<boolean> {

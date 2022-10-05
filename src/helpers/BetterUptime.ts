@@ -49,6 +49,23 @@ export class BetterUptime {
         this.apiKey = apiKey
     }
 
+    async initHeartbeats(name: string, types: Array<HeartbeatType>) {
+        const existingHeartbeats = await this.getAllHeartbeats()
+
+        for (const type of types) {
+            const exists = _.find(existingHeartbeats, (existingHeartbeat) => {
+                return existingHeartbeat.attributes.name === `${name} ${type}`
+            })
+
+            if (!exists) {
+                // Create new heartbeat
+                await this.getHeartbeat(name, type)
+            } else {
+                await log.debug(`${BetterUptime.name}:${this.send.name}: Heartbeat already created: '${name} ${type}'`)
+            }
+        }
+    }
+
     async sendHeartbeat(name: string, type: HeartbeatType) {
         try {
             const heartbeat = await this.getHeartbeat(name, type)
@@ -73,7 +90,9 @@ export class BetterUptime {
         const group = await this.getHeartbeatGroup(name)
 
         if (!heartbeat) {
-            // Create a new heartbeat
+            await log.debug(`${BetterUptime.name}:${this.send.name}: Creating new heartbeat: '${name} ${type}'`)
+
+            // Create new heartbeat
             const response = await this.send('POST', 'heartbeats', {
                 name: `${name} ${type}`,
                 period: 60, // 1min
@@ -96,6 +115,7 @@ export class BetterUptime {
         let heartbeats = await this.getAllHeartbeats()
 
         for (const heartbeat of heartbeats) {
+            await log.debug(`${BetterUptime.name}:${this.send.name}: Deleting heartbeat: '${heartbeat.attributes.name}'`)
             await this.send('DELETE', `heartbeats/${heartbeat.id}`)
         }
     }
@@ -104,6 +124,7 @@ export class BetterUptime {
         const heartbeatGroups = await this.getAllHeartbeatGroups()
 
         for (const heartbeatGroup of heartbeatGroups) {
+            await log.debug(`${BetterUptime.name}:${this.send.name}: Deleting heartbeat group: '${heartbeatGroup.attributes.name}'`)
             await this.send('DELETE', `heartbeat-groups/${heartbeatGroup.id}`)
         }
     }
@@ -115,7 +136,9 @@ export class BetterUptime {
         }))
 
         if (!group) {
-            // Create a new heartbeat group
+            await log.debug(`${BetterUptime.name}:${this.send.name}: Creating new heartbeat group: '${name}'`)
+
+            // Create new heartbeat group
             const response = await this.send('POST', 'heartbeat-groups', {
                 name: name
             })
@@ -142,7 +165,7 @@ export class BetterUptime {
         while (true) {
             try {
                 const url = `https://betteruptime.com/api/v2/${endpoint}`
-                await log.debug(`${BetterUptime.name}:${this.send.name}: method = ${method} | url = ${url} | data = ${JSON.stringify(data)}`)
+                await log.debug(`${BetterUptime.name}:${this.send.name}: method = ${method} | url = ${url}`)
 
                 response = await axios.request({
                     url: url,

@@ -13,8 +13,10 @@ export class Thornode extends Cosmos {
     }
 
     async initHeartbeats() {
-        await betterUptime.getHeartbeat(Thornode.name, HeartbeatType.HEALTH)
-        await betterUptime.getHeartbeat(Thornode.name, HeartbeatType.VERSION)
+        await betterUptime.initHeartbeats(Thornode.name, [
+            HeartbeatType.HEALTH,
+            HeartbeatType.VERSION
+        ])
         await super.initHeartbeats()
     }
 
