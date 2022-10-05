@@ -36,6 +36,11 @@ export declare type HeartbeatGroup = {
     }
 }
 
+export declare type Incident = {
+    id: string
+    type: string
+}
+
 export enum HeartbeatType {
     HEALTH = 'Health',
     SYNC_STATUS = 'Sync Status',
@@ -129,6 +134,18 @@ export class BetterUptime {
         }
     }
 
+    async deleteAllIncidents() {
+        let incidents = await this.getAllIncidents()
+
+        while (incidents.length !== 0) {
+            for (const incident of incidents) {
+                await log.debug(`${BetterUptime.name}:${this.send.name}: Deleting incident: ${incident.id}`)
+                await this.send('DELETE', `incidents/${incident.id}`)
+            }
+            incidents = await this.getAllIncidents()
+        }
+    }
+
     async getHeartbeatGroup(name: string): Promise<HeartbeatGroup> {
         const groups = await this.getAllHeartbeatGroups()
         let group = _.first(_.filter(groups, (group) => {
@@ -156,6 +173,11 @@ export class BetterUptime {
 
     private async getAllHeartbeatGroups(): Promise<Array<HeartbeatGroup>> {
         const response = await this.send('GET', 'heartbeat-groups')
+        return response.data.data
+    }
+
+    private async getAllIncidents(): Promise<Array<Incident>> {
+        const response = await this.send('GET', 'incidents')
         return response.data.data
     }
 
