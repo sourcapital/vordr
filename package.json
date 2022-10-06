@@ -22,7 +22,6 @@
     "@types/underscore": "^1.11.4",
     "axios": "^0.27.2",
     "cron": "^2.1.0",
-    "mongoose": "^6.6.0",
     "numeral": "^2.0.6",
     "underscore": "^1.13.6"
   }
