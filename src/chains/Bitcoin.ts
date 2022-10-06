@@ -128,8 +128,17 @@ export class Bitcoin extends Node {
             }), 3)
             await log.debug(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: topVersions = ['${topVersions.join('\',\'')}']`)
 
+            // Parse version as numbers so they can be compared
+            const nodeVersionAsNumber = Number(/([0-9]+)\.([0-9]+)\.([0-9]+)/g.exec(nodeVersion)!.slice(1,4).join(''))
+            const topVersionsAsNumbers = _.map(topVersions, (version) => {
+                return Number(/([0-9]+)\.([0-9]+)\.([0-9]+)/g.exec(version)!.slice(1,4).join(''))
+            })
+            const versionMatches = _.filter(topVersionsAsNumbers, (topVersionAsNumber) => {
+                return nodeVersionAsNumber >= topVersionAsNumber
+            })
+
             // Check if node version is in the top versions of the network
-            if (!_.contains(topVersions, nodeVersion)) {
+            if (versionMatches.length === 0) {
                 await log.warn(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: nodeVersion not in topVersions: '${nodeVersion}' not in ['${topVersions.join('\',\'')}']`)
                 return false
             }

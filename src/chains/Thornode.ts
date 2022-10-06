@@ -77,7 +77,11 @@ export class Thornode extends Cosmos {
             const topVersion = _.max(versions, (version) => { return Number(version.replace(/\./g, '')) })
             await log.debug(`${Thornode.name}:${this.isVersionUpToDate.name}: topVersion = ${topVersion}`)
 
-            if (nodeVersion < topVersion) {
+            // Parse version as numbers so they can be compared
+            const nodeVersionAsNumber = Number(/([0-9]+)\.([0-9]+)\.([0-9]+)/g.exec(nodeVersion)!.slice(1,4).join(''))
+            const topVersionAsNumber = Number(/([0-9]+)\.([0-9]+)\.([0-9]+)/g.exec(topVersion)!.slice(1,4).join(''))
+
+            if (nodeVersionAsNumber < topVersionAsNumber) {
                 await log.warn(`${Thornode.name}:${this.isVersionUpToDate.name}: nodeVersion < topVersion: '${nodeVersion}' < '${topVersion}'`)
                 return false
             }
