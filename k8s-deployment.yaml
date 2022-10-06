@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: vordr
-          image: registry.digitalocean.com/vordr/vordr@sha256:ec6c25ff10c346a1146f50834df8802f5bd67604132c1f57f4f01ea50fbf4008
+          image: registry.digitalocean.com/vordr/vordr@sha256:f4054c2d5ab90f31386a2028a1938f9da68c6c303621d935625cb5f2dc6c7b37
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_ENV
@@ -26,5 +26,9 @@ spec:
               value: '{LOGTAIL_API_KEY}'
             - name: BETTERUPTIME_API_KEY
               value: '{BETTERUPTIME_API_KEY}'
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
       imagePullSecrets:
         - name: vordr-registry
