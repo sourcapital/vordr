@@ -1,15 +1,12 @@
 export abstract class Node {
     protected url: string
-    protected blockDelay: number
 
     /**
      * @param url - The node's URL
-     * @param blockDelay - Amount of blocks the node is allowed to be behind because of network latency
      * @protected
      */
-    protected constructor(url: string, blockDelay: number) {
+    protected constructor(url: string) {
         this.url = url
-        this.blockDelay = blockDelay
     }
 
     /**

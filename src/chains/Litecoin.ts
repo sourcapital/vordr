@@ -2,6 +2,6 @@ import {Bitcoin, Chain} from './Bitcoin.js'
 
 export class Litecoin extends Bitcoin {
     constructor(url: string) {
-        super(url, 0, Chain.Litecoin)
+        super(url, Chain.Litecoin)
     }
 }

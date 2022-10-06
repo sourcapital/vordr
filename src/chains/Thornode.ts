@@ -8,7 +8,7 @@ export class Thornode extends Cosmos {
     private readonly thorRpcUrl: string
 
     constructor(thorUrl: string, cosmosUrl: string) {
-        super(cosmosUrl, 1, Chain.Thorchain)
+        super(cosmosUrl, Chain.Thorchain)
         this.thorRpcUrl = thorUrl
     }
 
