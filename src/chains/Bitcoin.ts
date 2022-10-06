@@ -37,10 +37,9 @@ export class Bitcoin extends Node {
 
         try {
             const nodeResponse = await this.query('getblockchaininfo')
-            await log.debug(`${getChainName(this.chain)}:${this.isUp.name}: HTTP status code: ${nodeResponse.status}`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isUp.name}: Node does not respond!`)
+                await log.error(`${getChainName(this.chain)}:${this.isUp.name}:getblockchaininfo: Node HTTP status code: ${nodeResponse.status}`)
                 return false
             }
         } catch (error) {
@@ -58,11 +57,18 @@ export class Bitcoin extends Node {
         await log.info(`${getChainName(this.chain)}: Checking if the node is synced ...`)
 
         try {
-            const nodeResponse = await this.query('getblockchaininfo')
-            await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: HTTP status code: ${nodeResponse.status}`)
+            // Await all time critical request together to minimize any delay (e.g. difference in block height)
+            const [nodeResponse, apiResponse] = await Promise.all([
+                this.query('getblockchaininfo'),
+                axios.get(`https://api.blockchair.com/${this.chain}/stats`)
+            ])
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}: Node does not respond!`)
+                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}:getblockchaininfo: Node HTTP status code: ${nodeResponse.status}`)
+                return false
+            }
+            if (apiResponse.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}: API HTTP status code: ${apiResponse.status}`)
                 return false
             }
 
@@ -76,7 +82,6 @@ export class Bitcoin extends Node {
                 return false
             }
 
-            const apiResponse = await axios.get(`https://api.blockchair.com/${this.chain}/stats`)
             const apiBlockHeight = apiResponse.data.data.best_block_height
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
@@ -100,18 +105,23 @@ export class Bitcoin extends Node {
         await log.info(`${getChainName(this.chain)}: Checking if node version is up-to-date ...`)
 
         try {
-            const nodeResponse = await this.query('getnetworkinfo')
-            await log.debug(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: HTTP status code: ${nodeResponse.status}`)
+            const [nodeResponse, apiResponse] = await Promise.all([
+                this.query('getnetworkinfo'),
+                axios.get(`https://api.blockchair.com/${this.chain}/nodes`)
+            ])
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: Node does not respond!`)
+                await log.error(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}:getnetworkinfo: Node HTTP status code: ${nodeResponse.status}`)
+                return false
+            }
+            if (apiResponse.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: API HTTP status code: ${apiResponse.status}`)
                 return false
             }
 
             const nodeVersion = nodeResponse.data.result.subversion
             await log.debug(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: nodeVersion = '${nodeVersion}'`)
 
-            const apiResponse = await axios.get(`https://api.blockchair.com/${this.chain}/nodes`)
             const apiVersions = apiResponse.data.data.versions
             const topVersions = _.first(Object.keys(apiVersions).sort((a, b) => {
                 return apiVersions[b] - apiVersions[a]
@@ -134,7 +144,7 @@ export class Bitcoin extends Node {
         return true
     }
 
-    protected async query(method: string, params?: []): Promise<AxiosResponse> {
+    private query(method: string, params?: []): Promise<AxiosResponse> {
         let url = this.url
         let config = undefined
 
@@ -150,7 +160,7 @@ export class Bitcoin extends Node {
             url = url.replace(regex, '$1') + url.replace(regex, '$4')
         }
 
-        return await axios.post(url, {
+        return axios.post(url, {
             jsonrpc: '1.0',
             id: 1,
             method: method,

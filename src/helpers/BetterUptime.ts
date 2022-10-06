@@ -1,6 +1,7 @@
 import axios, {AxiosResponse} from 'axios'
 import _ from 'underscore'
 import {handleError} from './Error.js'
+import {config} from '../config.js'
 
 export declare type Heartbeat = {
     id: string,
@@ -55,6 +56,10 @@ export class BetterUptime {
     }
 
     async initHeartbeats(name: string, types: Array<HeartbeatType>) {
+        if (config.nodeENV !== 'production') {
+            return
+        }
+
         const existingHeartbeats = await this.getAllHeartbeats()
 
         for (const type of types) {
@@ -72,6 +77,10 @@ export class BetterUptime {
     }
 
     async sendHeartbeat(name: string, type: HeartbeatType) {
+        if (config.nodeENV !== 'production') {
+            return
+        }
+
         try {
             const heartbeat = await this.getHeartbeat(name, type)
             const response = await axios.head(heartbeat.attributes.url)
@@ -84,31 +93,6 @@ export class BetterUptime {
         } catch (error) {
             await handleError(error)
         }
-    }
-
-    async getHeartbeat(name: string, type: HeartbeatType): Promise<Heartbeat> {
-        const heartbeats = await this.getAllHeartbeats()
-        let heartbeat = _.first(_.filter(heartbeats, (heartbeat) => {
-            return heartbeat.attributes.name === `${name} ${type}`
-        }))
-
-        const group = await this.getHeartbeatGroup(name)
-
-        if (!heartbeat) {
-            await log.debug(`${BetterUptime.name}:${this.send.name}: Creating new heartbeat: '${name} ${type}'`)
-
-            // Create new heartbeat
-            const response = await this.send('POST', 'heartbeats', {
-                name: `${name} ${type}`,
-                period: 60, // 1min
-                grace: 300, // 5min
-                heartbeat_group_id: group.id
-            })
-
-            heartbeat = response.data.data as Heartbeat
-        }
-
-        return heartbeat
     }
 
     async deleteAll() {
@@ -146,7 +130,32 @@ export class BetterUptime {
         }
     }
 
-    async getHeartbeatGroup(name: string): Promise<HeartbeatGroup> {
+    private async getHeartbeat(name: string, type: HeartbeatType): Promise<Heartbeat> {
+        const heartbeats = await this.getAllHeartbeats()
+        let heartbeat = _.first(_.filter(heartbeats, (heartbeat) => {
+            return heartbeat.attributes.name === `${name} ${type}`
+        }))
+
+        const group = await this.getHeartbeatGroup(name)
+
+        if (!heartbeat) {
+            await log.debug(`${BetterUptime.name}:${this.send.name}: Creating new heartbeat: '${name} ${type}'`)
+
+            // Create new heartbeat
+            const response = await this.send('POST', 'heartbeats', {
+                name: `${name} ${type}`,
+                period: 60, // 1min
+                grace: 300, // 5min
+                heartbeat_group_id: group.id
+            })
+
+            heartbeat = response.data.data as Heartbeat
+        }
+
+        return heartbeat
+    }
+
+    private async getHeartbeatGroup(name: string): Promise<HeartbeatGroup> {
         const groups = await this.getAllHeartbeatGroups()
         let group = _.first(_.filter(groups, (group) => {
             return group.attributes.name === name

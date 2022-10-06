@@ -34,10 +34,9 @@ export class Ethereum extends Node {
 
         try {
             const nodeResponse = await this.query('eth_syncing')
-            await log.debug(`${getChainName(this.chain)}:${this.isUp.name}: HTTP status code: ${nodeResponse.status}`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isUp.name}: Node does not respond!`)
+                await log.error(`${getChainName(this.chain)}:${this.isUp.name}:eth_syncing: Node HTTP status code: ${nodeResponse.status}`)
                 return false
             }
         } catch (error) {
@@ -55,15 +54,37 @@ export class Ethereum extends Node {
         await log.info(`${getChainName(this.chain)}: Checking if the node is synced ...`)
 
         try {
-            let nodeResponse = await this.query('eth_syncing')
-            await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}:eth_syncing: HTTP status code: ${nodeResponse.status}`)
+            let apiRequest: Promise<AxiosResponse>
+            switch (this.chain) {
+                case Chain.Ethereum:
+                    apiRequest = axios.get('https://api.blockchair.com/ethereum/stats')
+                    break
+                case Chain.Avalanche:
+                    apiRequest = this.query('eth_blockNumber', 'https://api.avax.network/ext/bc/C/rpc')
+                    break
+            }
 
-            if (nodeResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}:eth_syncing: Node does not respond!`)
+            // Await all time critical request together to minimize any delay (e.g. difference in block height)
+            const [nodeResponseSync, nodeResponseBlockNumber, apiResponse] = await Promise.all([
+                this.query('eth_syncing'),
+                this.query('eth_blockNumber'),
+                apiRequest
+            ])
+
+            if (nodeResponseSync.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}:eth_syncing: Node HTTP status code: ${nodeResponseSync.status}`)
+                return false
+            }
+            if (nodeResponseBlockNumber.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}:eth_blockNumber: Node HTTP status code: ${nodeResponseBlockNumber.status}`)
+                return false
+            }
+            if (apiResponse.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}: API HTTP status code: ${apiResponse.status}`)
                 return false
             }
 
-            const isSyncing = nodeResponse.data.result
+            const isSyncing = nodeResponseSync.data.result
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: isSyncing = ${isSyncing}`)
 
             // Check if node is still syncing
@@ -72,27 +93,15 @@ export class Ethereum extends Node {
                 return false
             }
 
-            nodeResponse = await this.query('eth_blockNumber')
-            await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}:eth_blockNumber: HTTP status code: ${nodeResponse.status}`)
-
-            if (nodeResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}:eth_blockNumber: Node does not respond!`)
-                return false
-            }
-
-            const nodeBlockHeight = Number(nodeResponse.data.result)
+            const nodeBlockHeight = Number(nodeResponseBlockNumber.data.result)
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')}`)
 
-            let apiResponse: any
             let apiBlockHeight: number
-
             switch (this.chain) {
                 case Chain.Ethereum:
-                    apiResponse = await axios.get(`https://api.blockchair.com/ethereum/stats`)
                     apiBlockHeight = apiResponse.data.data.best_block_height
                     break
                 case Chain.Avalanche:
-                    apiResponse = await this.query('eth_blockNumber', 'https://api.avax.network/ext/bc/C/rpc')
                     apiBlockHeight = Number(apiResponse.data.result)
                     break
             }
@@ -119,10 +128,9 @@ export class Ethereum extends Node {
 
         try {
             const nodeResponse = await this.query('web3_clientVersion')
-            await log.debug(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: HTTP status code: ${nodeResponse.status}`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: Node does not respond!`)
+                await log.error(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}:web3_clientVersion: Node HTTP status code: ${nodeResponse.status}`)
                 return false
             }
 
@@ -145,8 +153,8 @@ export class Ethereum extends Node {
         return true
     }
 
-    protected async query(method: string, url?: string, params?: []): Promise<AxiosResponse> {
-        return await axios.post(url ?? this.url, {
+    private query(method: string, url?: string, params?: []): Promise<AxiosResponse> {
+        return axios.post(url ?? this.url, {
             jsonrpc: '2.0',
             id: 1,
             method: method,

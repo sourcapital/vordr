@@ -25,10 +25,9 @@ export class Thornode extends Cosmos {
 
         try {
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/ping`)
-            await log.debug(`${Thornode.name}:${this.isUp.name}: HTTP status code: ${nodeResponse.status}`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.isUp.name}: Node does not respond!`)
+                await log.error(`${Thornode.name}:${this.isUp.name}:ping: Node HTTP status code: ${nodeResponse.status}`)
                 return false
             }
 
@@ -36,7 +35,7 @@ export class Thornode extends Cosmos {
             await log.debug(`${Thornode.name}:${this.isUp.name}: ping -> ${nodePong}`)
 
             if (nodePong !== 'pong') {
-                await log.error(`${Thornode.name}:${this.isUp.name}: Node does not respond to 'ping' with 'pong'!`)
+                await log.error(`${Thornode.name}:${this.isUp.name}:ping: Node does not respond to 'ping' with 'pong'!`)
                 return false
             }
         } catch (error) {
@@ -54,26 +53,24 @@ export class Thornode extends Cosmos {
         await log.info(`${Thornode.name}: Checking if node version is up-to-date ...`)
 
         try {
-            let nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/version`)
-            await log.debug(`${Thornode.name}:${this.isVersionUpToDate.name}: HTTP status code: ${nodeResponse.status}`)
+            const [nodeResponseVersion, nodeResponseNodes] = await Promise.all([
+                axios.get(`${this.thorRpcUrl}/thorchain/version`),
+                axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
+            ])
 
-            if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.isVersionUpToDate.name}: Node does not respond!`)
+            if (nodeResponseVersion.status !== 200) {
+                await log.error(`${Thornode.name}:${this.isVersionUpToDate.name}:version: Node HTTP status code: ${nodeResponseVersion.status}`)
+                return false
+            }
+            if (nodeResponseNodes.status !== 200) {
+                await log.error(`${Thornode.name}:${this.isVersionUpToDate.name}:nodes: Node HTTP status code: ${nodeResponseNodes.status}`)
                 return false
             }
 
-            const nodeVersion = nodeResponse.data.current
+            const nodeVersion = nodeResponseVersion.data.current
             await log.debug(`${Thornode.name}:${this.isVersionUpToDate.name}: nodeVersion = ${nodeVersion}`)
 
-            nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
-            await log.debug(`${Thornode.name}:${this.isVersionUpToDate.name}: HTTP status code: ${nodeResponse.status}`)
-
-            if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.isVersionUpToDate.name}: Node does not respond!`)
-                return false
-            }
-
-            const activeNodes = _.filter(nodeResponse.data, (node) => {
+            const activeNodes = _.filter(nodeResponseNodes.data, (node) => {
                 return node.status.toLowerCase() === 'active'
             })
             const versions = _.map(activeNodes, (node) => { return node.version })

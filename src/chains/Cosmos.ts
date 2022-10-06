@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, {AxiosResponse} from 'axios'
 import _ from 'underscore'
 import numeral from 'numeral'
 import {Node} from './Node.js'
@@ -36,10 +36,9 @@ export class Cosmos extends Node {
 
         try {
             const nodeResponse = await axios.get(`${this.url}/health`)
-            await log.debug(`${getChainName(this.chain)}:${this.isUp.name}: HTTP status code: ${nodeResponse.status}`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isUp.name}: Node does not respond!`)
+                await log.error(`${getChainName(this.chain)}:${this.isUp.name}:health: Node HTTP status code: ${nodeResponse.status}`)
                 return false
             }
         } catch (error) {
@@ -57,11 +56,31 @@ export class Cosmos extends Node {
         await log.info(`${getChainName(this.chain)}: Checking if the node is synced ...`)
 
         try {
-            const nodeResponse = await axios.get(`${this.url}/status`)
-            await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: HTTP status code: ${nodeResponse.status}`)
+            let apiRequest: Promise<AxiosResponse>
+            switch (this.chain) {
+                case Chain.Cosmos:
+                    apiRequest = axios.get('https://api.cosmos.network/blocks/latest')
+                    break
+                case Chain.Binance:
+                    apiRequest = axios.get('https://dex.binance.org/api/v1/node-info')
+                    break
+                case Chain.Thorchain:
+                    apiRequest = axios.get('https://rpc.ninerealms.com/status')
+                    break
+            }
+
+            // Await all time critical request together to minimize any delay (e.g. difference in block height)
+            const [nodeResponse, apiResponse] = await Promise.all([
+                axios.get(`${this.url}/status`),
+                apiRequest
+            ])
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}: Node does not respond!`)
+                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}:status: Node HTTP status code: ${nodeResponse.status}`)
+                return false
+            }
+            if (apiResponse.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}: API HTTP status code: ${apiResponse.status}`)
                 return false
             }
 
@@ -77,20 +96,15 @@ export class Cosmos extends Node {
             const nodeBlockHeight = Number(nodeResponse.data.result.sync_info.latest_block_height)
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')}`)
 
-            let apiResponse: any
             let apiBlockHeight: number
-
             switch (this.chain) {
                 case Chain.Cosmos:
-                    apiResponse = await axios.get('https://api.cosmos.network/blocks/latest')
                     apiBlockHeight = apiResponse.data.block.header.height
                     break
                 case Chain.Binance:
-                    apiResponse = await axios.get('https://dex.binance.org/api/v1/node-info')
                     apiBlockHeight = apiResponse.data.sync_info.latest_block_height
                     break
                 case Chain.Thorchain:
-                    apiResponse = await axios.get(`https://rpc.ninerealms.com/status`)
                     apiBlockHeight = Number(apiResponse.data.result.sync_info.latest_block_height)
                     break
             }
@@ -116,19 +130,24 @@ export class Cosmos extends Node {
         await log.info(`${getChainName(this.chain)}: Checking if node version is up-to-date ...`)
 
         try {
-            let nodeResponse = await axios.get(`${this.url}/status`)
-            await log.debug(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: HTTP status code: ${nodeResponse.status}`)
+            const [nodeResponseStatus, nodeResponseNetInfo] = await Promise.all([
+                axios.get(`${this.url}/status`),
+                axios.get(`${this.url}/net_info`)
+            ])
 
-            if (nodeResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: Node does not respond!`)
+            if (nodeResponseStatus.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}:status: Node HTTP status code: ${nodeResponseStatus.status}`)
+                return false
+            }
+            if (nodeResponseNetInfo.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}:net_info: Node HTTP status code: ${nodeResponseNetInfo.status}`)
                 return false
             }
 
-            const nodeVersion = nodeResponse.data.result.node_info.version
+            const nodeVersion = nodeResponseStatus.data.result.node_info.version
             await log.debug(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: nodeVersion = '${nodeVersion}'`)
 
-            nodeResponse = await axios.get(`${this.url}/net_info`)
-            const nodePeers = nodeResponse.data.result.peers
+            const nodePeers = nodeResponseNetInfo.data.result.peers
             const nodePeerVersions = _.map(nodePeers, (peer) => {
                 return peer.node_info.version
             })
