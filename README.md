@@ -6,7 +6,7 @@ A monitoring application for THORNodes.
 
 ## Supported Chains
 
-| Chain    | Subchain                                                           |
+| Client   | Chain                                                              |
 |----------|--------------------------------------------------------------------|
 | Bitcoin  | Bitcoin (BTC), Litecoin (LTC), Bitcoin Cash (BCH), Dogecoin (DOGE) |
 | Ethereum | Ethereum (ETH), Avalanche (AVAX)                                   |
@@ -32,12 +32,12 @@ yarn build
 
 ### Environment Variables
 
-Set all the environment variables:
+Set all environment variables:
 
 ```
 BETTERUPTIME_API_KEY = XXX
-LOGTAIL_API_KEY = XXX // optional
-NODE_ENV = 'production' // 'production', if run in production
+LOGTAIL_API_KEY = XXX | undefined // optional
+NODE_ENV = 'production' | undefined // 'production', if run in production
 ```
 
 ### Run
@@ -52,7 +52,7 @@ yarn start
 
 ### Deploy to cluster
 
-Set both all environment variables in `k8s-deployment.yaml` and deploy the application:
+Set all environment variables in `k8s-deployment.yaml` and deploy the application:
 
 ```
 kubectl create -f k8s-deployment.yaml
@@ -65,6 +65,22 @@ Remove the application from the Kubernetes cluster:
 ```
 kubectl delete -f k8s-deployment.yaml
 ```
+
+## Integrations
+
+### BetterUptime
+
+BetterUptime's `Heartbeats` are used for node health monitoring and indicent management. Sign up at [betteruptime.com](https://betteruptime.com/?ref=8l7f) and follow the [docs](https://docs.betteruptime.com/api/getting-started#obtaining-an-api-token) to get the API key.
+
+<img width="1560" alt="image" src="https://user-images.githubusercontent.com/6087393/194463319-da42d277-4c14-49f3-ab86-aaa9cdee412d.png">
+
+## Logging
+
+### Logtail (optional)
+
+Logtail can be optionally used for log manangement of the application. Sign up at [logtail.com](https://logtail.com), go to `Sources`, add a new `Source` with `JavaScript` as the platform and get the `Source` token.
+
+<img width="1516" alt="image" src="https://user-images.githubusercontent.com/6087393/194464966-6d5a1d70-aa4e-4cc6-8bcc-a17549398cc3.png">
 
 ## License
 
