@@ -83,7 +83,7 @@ export class BetterUptime {
 
         try {
             const heartbeat = await this.getHeartbeat(name, type)
-            const response = await axios.head(heartbeat.attributes.url)
+            const response = await axios.get(heartbeat.attributes.url)
 
             if (response.status === 200) {
                 await log.info(`${BetterUptime.name}:${this.sendHeartbeat.name}: ${name} ${type} ❤️`)
