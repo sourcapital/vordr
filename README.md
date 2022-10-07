@@ -37,9 +37,9 @@ yarn build
 Set all environment variables:
 
 ```
+NODE_ENV = 'production' | undefined // 'production', if run in production
 BETTERUPTIME_API_KEY = XXX
 LOGTAIL_SOURCE_TOKEN = XXX | undefined // optional
-NODE_ENV = 'production' | undefined // 'production', if run in production
 ```
 
 ### Run
