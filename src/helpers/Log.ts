@@ -5,7 +5,7 @@ export class Log {
     private log?: Logtail
 
     constructor() {
-        this.log = config.logtail.apiKey ? new Logtail(config.logtail.apiKey) : undefined
+        this.log = config.logtail.sourceToken ? new Logtail(config.logtail.sourceToken) : undefined
     }
 
     async debug(message: string) {

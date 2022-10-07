@@ -1,6 +1,6 @@
 export const config = {
     logtail: {
-        apiKey: process.env.LOGTAIL_API_KEY,
+        sourceToken: process.env.LOGTAIL_SOURCE_TOKEN,
     },
     betterUptime: {
         apiKey: process.env.BETTERUPTIME_API_KEY!,

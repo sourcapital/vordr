@@ -36,7 +36,7 @@ Set all environment variables:
 
 ```
 BETTERUPTIME_API_KEY = XXX
-LOGTAIL_API_KEY = XXX | undefined // optional
+LOGTAIL_SOURCE_TOKEN = XXX | undefined // optional
 NODE_ENV = 'production' | undefined // 'production', if run in production
 ```
 
