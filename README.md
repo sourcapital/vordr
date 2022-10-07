@@ -6,6 +6,8 @@ A monitoring application for THORNodes.
 
 ## Supported Chains
 
+All chains are monitored for `Health`, `Sync Status` and `Version`.
+
 | Client   | Chain                                                              |
 |----------|--------------------------------------------------------------------|
 | Bitcoin  | Bitcoin (BTC), Litecoin (LTC), Bitcoin Cash (BCH), Dogecoin (DOGE) |
@@ -70,7 +72,7 @@ kubectl delete -f k8s-deployment.yaml
 
 ### BetterUptime
 
-BetterUptime's `Heartbeats` are used for node health monitoring and indicent management. Sign up at [betteruptime.com](https://betteruptime.com/?ref=8l7f) and follow the [docs](https://docs.betteruptime.com/api/getting-started#obtaining-an-api-token) to get the API key.
+BetterUptime's `Heartbeats` are used for alerting and incident management. Sign up at [betteruptime.com](https://betteruptime.com/?ref=8l7f) and follow the [docs](https://docs.betteruptime.com/api/getting-started#obtaining-an-api-token) to get the API key.
 
 <img width="1560" alt="image" src="https://user-images.githubusercontent.com/6087393/194463319-da42d277-4c14-49f3-ab86-aaa9cdee412d.png">
 
