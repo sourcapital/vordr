@@ -35,9 +35,9 @@ yarn build
 Set all the environment variables:
 
 ```
-LOGTAIL_API_KEY = XXX
 BETTERUPTIME_API_KEY = XXX
-NODE_ENV = 'production' // if run in production
+LOGTAIL_API_KEY = XXX // optional
+NODE_ENV = 'production' // 'production', if run in production
 ```
 
 ### Run

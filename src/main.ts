@@ -1,4 +1,3 @@
-import {Logtail} from '@logtail/node'
 import {CronJob} from 'cron'
 import _ from 'underscore'
 import {config} from './config.js'
@@ -6,19 +5,19 @@ import {Log} from './helpers/Log.js'
 import {BetterUptime} from './helpers/BetterUptime.js'
 import {handleError} from './helpers/Error.js'
 import {Node} from './chains/Node.js'
+import {Thornode} from './chains/Thornode.js'
+import {Binance} from './chains/Binance.js'
 import {Bitcoin} from './chains/Bitcoin.js'
+import {Ethereum} from './chains/Ethereum.js'
 import {Litecoin} from './chains/Litecoin.js'
 import {BitcoinCash} from './chains/BitcoinCash.js'
 import {Dogecoin} from './chains/Dogecoin.js'
-import {Ethereum} from './chains/Ethereum.js'
-import {Avalanche} from './chains/Avalanche.js'
 import {Cosmos} from './chains/Cosmos.js'
-import {Binance} from './chains/Binance.js'
-import {Thornode} from './chains/Thornode.js'
+import {Avalanche} from './chains/Avalanche.js'
 
 // Setup globals
 global.sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
-global.log = new Log(new Logtail(config.logtail.apiKey))
+global.log = new Log()
 global.betterUptime = new BetterUptime(config.betterUptime.apiKey)
 
 // Init nodes

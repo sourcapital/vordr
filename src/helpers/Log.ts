@@ -2,17 +2,17 @@ import {Logtail} from '@logtail/node'
 import {config} from '../config.js'
 
 export class Log {
-    private log: Logtail
+    private log?: Logtail
 
-    constructor(log: Logtail) {
-        this.log = log
+    constructor() {
+        this.log = config.logtail.apiKey ? new Logtail(config.logtail.apiKey) : undefined
     }
 
     async debug(message: string) {
         console.debug(message)
 
         if (config.nodeENV === 'production') {
-            await this.log.debug(message)
+            await this.log?.debug(message)
         }
     }
 
@@ -20,7 +20,7 @@ export class Log {
         console.info(message)
 
         if (config.nodeENV === 'production') {
-            await this.log.info(message)
+            await this.log?.info(message)
         }
     }
 
@@ -28,7 +28,7 @@ export class Log {
         console.warn(message)
 
         if (config.nodeENV === 'production') {
-            await this.log.warn(message)
+            await this.log?.warn(message)
         }
     }
 
@@ -36,7 +36,7 @@ export class Log {
         console.error(message)
 
         if (config.nodeENV === 'production') {
-            await this.log.error(message)
+            await this.log?.error(message)
         }
 
         if (raise) {
