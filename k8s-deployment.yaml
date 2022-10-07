@@ -31,7 +31,7 @@ spec:
     spec:
       containers:
         - name: vordr
-          image: registry.digitalocean.com/vordr/vordr@sha256:dac3683c356f8c24540d01e539475865c6ac61e37fc7b32ebfa6a9554e88b083
+          image: registry.digitalocean.com/vordr/vordr@sha256:2df04160829eb9885068d8338fceaea386246dac4606ed8396a1ea6e2dc6261f
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_ENV
