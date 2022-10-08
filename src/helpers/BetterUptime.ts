@@ -56,10 +56,6 @@ export class BetterUptime {
     }
 
     async initHeartbeats(name: string, types: Array<HeartbeatType>) {
-        if (config.nodeENV !== 'production') {
-            return
-        }
-
         const existingHeartbeats = await this.getAllHeartbeats()
 
         for (const type of types) {

@@ -3,6 +3,7 @@ import _ from 'underscore'
 import {config} from './config.js'
 import {Log} from './helpers/Log.js'
 import {BetterUptime} from './helpers/BetterUptime.js'
+import {Loki} from './helpers/Loki.js'
 import {handleError} from './helpers/Error.js'
 import {Node} from './chains/Node.js'
 import {Thornode} from './chains/Thornode.js'
@@ -49,12 +50,13 @@ if (config.nodeENV === 'production') {
     ]
 }
 
-// Init heartbeats in correct sequence
+// Setup heartbeats in correct sequence
 await log.info('Initializing heartbeats ...')
-for (const node of nodes) {
-    await node.initHeartbeats()
-}
-await log.info('Heartbeats initialized! ❤️')
+for (const node of nodes) await node.initHeartbeats()
+
+// Setup Loki log stream
+await log.info('Initializing Loki stream ...')
+new Loki()
 
 // Run node monitoring every minute
 new CronJob('* * * * *', async () => {
