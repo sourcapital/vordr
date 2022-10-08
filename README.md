@@ -72,10 +72,9 @@ kubectl delete -f k8s-deployment.yaml
 
 BetterUptime's `Heartbeats` are used for alerting and incident management.
 
-The application:
-- Sends heartbeats once per minute for every node's `Health`, `Sync Status` and `Version`
+- Heartbeats are sent once per minute for every node's `Health`, `Sync Status` and `Version`
 
-If BetterUptime does not receive a heartbeat from the application for a certain period of time (`5m` by default), it will notify you and your team based on your escalation policy.
+If BetterUptime does not receive a heartbeat from Vǫrðr for a certain period of time (`5m` by default), it will notify you and your team based on your escalation policy.
 
 #### API Key
 
@@ -87,9 +86,9 @@ Sign up at [betteruptime.com](https://betteruptime.com/?ref=8l7f) and follow the
 
 Logtail can be optionally used for log manangement.
 
-If `LOGTAIL_SOURCE_TOKEN` is set in the environment variables, the application:
-- Send its own logs to Logtail
-- Connects to Loki and forwards all logs of the Kubernetes namespace `thornode` to Logtail
+If `LOGTAIL_SOURCE_TOKEN` is set in the environment variables:
+- Vǫrðr's own logs are forwarded to Logtail
+- Loki logs of the Kubernetes namespace `thornode` are forwarded to Logtail
 
 Make sure that Loki is installed on your Kubernetes cluster if you want the logs of your nodes to get forwarded (`make install-loki`, see the [docs](https://docs.thorchain.org/thornodes/managing#logs-management-loki)). Forwarded logs can also be queried within the built-in Grafana in Logtail. Read more [here](https://docs.logtail.com/how-to/querying-data-in-logtail#grafana).
 
