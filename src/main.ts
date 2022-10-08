@@ -56,7 +56,7 @@ for (const node of nodes) await node.initHeartbeats()
 
 // Setup Loki log stream
 await log.info('Initializing Loki stream ...')
-new Loki()
+await new Loki().connect()
 
 // Run node monitoring every minute
 new CronJob('* * * * *', async () => {

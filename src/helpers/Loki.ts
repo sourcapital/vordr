@@ -4,20 +4,33 @@ import {config} from '../config.js'
 import {handleError} from './Error.js'
 
 export class Loki {
-    constructor() {
+    private ws?: WebSocket
+    private retries = 3
+
+    async connect() {
+        await log.debug(`${Loki.name}: Connecting ...`)
+
         const host = config.nodeENV === 'production' ? 'loki.loki-system' : 'localhost'
         const nowTsNs = moment().unix() * 1e9 // Timestamp in nano seconds
-        const ws = new WebSocket(`ws://${host}:3100/loki/api/v1/tail?query={namespace="thornode"}&start=${nowTsNs}`)
+        this.ws = new WebSocket(`ws://${host}:3100/loki/api/v1/tail?query={namespace="thornode"}&start=${nowTsNs}`)
 
-        ws.on('open', async () => {
-            await log.debug(`${Loki.name}: WebSocket connection opened!`)
+        this.ws.on('open', async () => {
+            await log.debug(`${Loki.name}: WebSocket connected!`)
+            this.retries = 3
         })
 
-        ws.on('close', async () => {
-            await log.debug(`${Loki.name}: WebSocket connection closed!`)
+        this.ws.on('close', async () => {
+            await log.debug(`${Loki.name}: WebSocket disconnected!`)
+            this.retries -= 1
+
+            if (this.retries > 0) {
+                await log.debug(`${Loki.name}: Reconnecting ...`)
+                await sleep(1000)
+                await this.connect()
+            }
         })
 
-        ws.on('error', async (error: any) => {
+        this.ws.on('error', async (error: any) => {
             if (error.code === 'ECONNREFUSED') {
                 await console.error(`${Loki.name}: Unable to connect to '${host}'. Connection was refused!`)
             } else {
@@ -25,7 +38,7 @@ export class Loki {
             }
         })
 
-        ws.on('message', async (data) => {
+        this.ws.on('message', async (data) => {
             const streams: Array<any> = JSON.parse(data.toString()).streams
             for (const stream of streams) {
                 const prefix = `${Loki.name}:${stream.stream.app}`
