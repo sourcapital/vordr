@@ -6,7 +6,7 @@ A monitoring application for THORNodes.
 
 ## Supported Chains
 
-All chains are monitored for `Health`, `Sync Status` and `Version`.
+All chains are monitored for `Health`, `Sync Status` and `Version` once per minute.
 
 | Client   | Chain                                                              |
 |----------|--------------------------------------------------------------------|
@@ -34,13 +34,11 @@ yarn build
 
 ### Environment Variables
 
-Set all environment variables:
-
-```
-NODE_ENV = 'production' | undefined // 'production', if run in production
-BETTERUPTIME_API_KEY = XXX
-LOGTAIL_SOURCE_TOKEN = XXX | undefined // optional
-```
+| Key                  | Required | Description                                                            |
+|----------------------|----------|------------------------------------------------------------------------|
+| NODE_ENV             | No       | Set to `production`, if you want to run the application in production. |
+| BETTERUPTIME_API_KEY | Yes      | BetterUptime's API Key, see [here](#betteruptime).                     |
+| LOGTAIL_SOURCE_TOKEN | No       | Logtail's Source Token, see [here](#logging-optional).                 |
 
 ### Run
 
@@ -68,19 +66,36 @@ Remove the application from the Kubernetes cluster:
 kubectl delete -f k8s-deployment.yaml
 ```
 
-## Integrations
+## Alerting
 
 ### BetterUptime
 
-BetterUptime's `Heartbeats` are used for alerting and incident management. Sign up at [betteruptime.com](https://betteruptime.com/?ref=8l7f) and follow the [docs](https://docs.betteruptime.com/api/getting-started#obtaining-an-api-token) to get the API key.
+BetterUptime's `Heartbeats` are used for alerting and incident management.
+
+The application:
+- Sends heartbeats once per minute for every node's `Health`, `Sync Status` and `Version`
+
+If BetterUptime does not receive a heartbeat from the application for a certain period of time (`5m` by default), it will notify you and your team based on your escalation policy.
+
+#### API Key
+
+Sign up at [betteruptime.com](https://betteruptime.com/?ref=8l7f) and follow the [docs](https://docs.betteruptime.com/api/getting-started#obtaining-an-api-token) to get the API key.
 
 <img width="1560" alt="image" src="https://user-images.githubusercontent.com/6087393/194463319-da42d277-4c14-49f3-ab86-aaa9cdee412d.png">
 
-## Logging
+## Logging (optional)
 
-### Logtail (optional)
+Logtail can be optionally used for log manangement.
 
-Logtail can be optionally used for log manangement of the application. Sign up at [logtail.com](https://logtail.com), go to `Sources`, add a new `Source` with `JavaScript` as the platform and get the `Source` token.
+If `LOGTAIL_SOURCE_TOKEN` is set in the environment variables, the application:
+- Send its own logs to Logtail
+- Connects to Loki and forwards all logs of the Kubernetes namespace `thornode` to Logtail
+
+Make sure that Loki is installed on your Kubernetes cluster if you want the logs of your nodes to get forwarded (`make install-loki`, see the [docs](https://docs.thorchain.org/thornodes/managing#logs-management-loki)). Forwarded logs can also be queried within the built-in Grafana in Logtail. Read more [here](https://docs.logtail.com/how-to/querying-data-in-logtail#grafana).
+
+#### Source Token
+
+Sign up at [logtail.com](https://logtail.com), go to `Sources`, add a new `Source` with `JavaScript` as the platform and get the `Source` token.
 
 <img width="1516" alt="image" src="https://user-images.githubusercontent.com/6087393/194464966-6d5a1d70-aa4e-4cc6-8bcc-a17549398cc3.png">
 
