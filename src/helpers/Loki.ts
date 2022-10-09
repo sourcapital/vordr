@@ -64,16 +64,17 @@ export class Loki {
         })
     }
 
-    private async parseLogLevel(message: any): Promise<string> {
+    private async parseLogLevel(message: string): Promise<string> {
+        message = message.toLowerCase()
+
+        const regex1 = /(debug|info|warn|error)/g.exec(message)
+        const regex2 = /([diwe]).*\[/.exec(message)
+
         let logLevel: string
-
-        const regex1 = /"*level"*[:=]"*(debug|info|warn|error)"*/g.exec(message)
-        const regex2 = /([DIWE]).*\[/.exec(message)
-
         if (regex1) {
-            logLevel = regex1.slice(1, 2)[0].toLowerCase()
+            logLevel = regex1.slice(1, 2)[0]
         } else if (regex2) {
-            logLevel = regex2.slice(1, 2)[0].toLowerCase()
+            logLevel = regex2.slice(1, 2)[0]
         } else {
             logLevel = 'none'
         }
