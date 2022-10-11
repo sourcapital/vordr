@@ -55,9 +55,9 @@ for (const node of nodes) await node.initHeartbeats()
 
 // Setup kubernetes monitoring and log streams
 const kubernetes = new Kubernetes()
-await kubernetes.setupLogStreams(nodes)
-await kubernetes.setupRestartMonitoring(nodes)
-await kubernetes.setupDiskUsageMonitoring(nodes)
+await kubernetes.setupLogStreams('thornode')
+await kubernetes.setupRestartMonitoring('thornode')
+await kubernetes.setupDiskUsageMonitoring('thornode')
 
 // Run node health monitoring every minute
 new Cron('* * * * *', async () => {

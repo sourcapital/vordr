@@ -5,25 +5,17 @@ import k8s, {Exec, KubeConfig} from '@kubernetes/client-node'
 import {config} from '../config.js'
 import {handleError} from '../helpers/Error.js'
 import {Cron} from '../helpers/Cron.js'
-import {Node} from '../chains/Node.js'
-import {Thornode} from '../chains/Thornode.js'
-import {Binance} from '../chains/Binance.js'
-import {Bitcoin} from '../chains/Bitcoin.js'
-import {Ethereum} from '../chains/Ethereum.js'
-import {Litecoin} from '../chains/Litecoin.js'
-import {BitcoinCash} from '../chains/BitcoinCash.js'
-import {Dogecoin} from '../chains/Dogecoin.js'
-import {Cosmos} from '../chains/Cosmos.js'
-import {Avalanche} from '../chains/Avalanche.js'
 
 declare type K8sPod = {
     name: string,
     namespace: string,
-    container: string,
+    container: Container,
     restarts: number
 }
 
 enum Container {
+    Bifrost = 'bifrost',
+    Gateway = 'gateway',
     Thornode = 'thornode',
     Binance = 'binance-daemon',
     Bitcoin = 'bitcoin-daemon',
@@ -55,79 +47,60 @@ export class Kubernetes {
         this.k8sApi = this.k8sConfig.makeApiClient(k8s.CoreV1Api)
     }
 
-    async setupRestartMonitoring(nodes: Array<Node>) {
+    async setupRestartMonitoring(namespace: string) {
         await log.info(`${Kubernetes.name}: Setup pod restart monitoring ...`)
 
         // Run every 5 minutes
         new Cron('*/5 * * * *', async () => {
-            await Promise.all(_.map(nodes, (node) => {
-                return this.monitorRestarts(this.getContainerFromNodeClass(node), 'thornode')
+            const pods = await this.getPods(namespace)
+            await Promise.all(_.map(pods, (pod) => {
+                return this.monitorRestarts(pod)
             }))
         }).run()
     }
 
-    async setupDiskUsageMonitoring(nodes: Array<Node>) {
+    async setupDiskUsageMonitoring(namespace: string) {
         await log.info(`${Kubernetes.name}: Setup pod disk usage monitoring ...`)
 
         // Run every hour
         new Cron('0 * * * *', async () => {
-            await Promise.all(_.map(nodes, (node) => {
-                return this.monitorDiskUsage(this.getContainerFromNodeClass(node), 'thornode')
+            const pods = await this.getPods(namespace)
+            await Promise.all(_.map(pods, (pod) => {
+                return this.monitorDiskUsage(pod)
             }))
         }).run()
     }
 
-    async setupLogStreams(nodes: Array<Node>) {
+    async setupLogStreams(namespace: string) {
         await log.info(`${Kubernetes.name}: Setup log streams ...`)
 
         try {
-            const jobs = _.map(nodes, (node) => {
-                return this.streamLogs(this.getContainerFromNodeClass(node), 'thornode')
-            })
-            await Promise.all(jobs)
+            const pods = await this.getPods(namespace)
+            await Promise.all(_.map(pods, (pod) => {
+                return this.streamLogs(pod)
+            }))
         } catch (error) {
             await handleError(error)
         }
     }
 
-    private async monitorRestarts(container: Container, namespace: string) {
-        const pod = await this.getPodByContainer(container, namespace)
-
-        if (!pod) {
-            await log.error(`${Kubernetes.name}:${getContainerName(container)}:${this.monitorRestarts.name}: Pod for container '${container}' not found in cluster namespace '${namespace}'!`)
-            return
-        }
-
-        await log.info(`${Kubernetes.name}:${getContainerName(container)}:Pod:Restarts: ${pod.restarts}`)
+    private async monitorRestarts(pod: K8sPod) {
+        await log.info(`${Kubernetes.name}:${getContainerName(pod.container)}:Pod:Restarts: ${pod.restarts}`)
     }
 
-    private async monitorDiskUsage(container: Container, namespace: string) {
-        const pod = await this.getPodByContainer(container, namespace)
-
-        if (!pod) {
-            await log.error(`${Kubernetes.name}:${getContainerName(container)}:${this.monitorDiskUsage.name}: Pod for container '${container}' not found in cluster namespace '${namespace}'!`)
-            return
-        }
-
+    private async monitorDiskUsage(pod: K8sPod) {
         // Calculate pod disk usage
         const output = await this.execute(pod, ['df', '-k'])
-        const regex = new RegExp(`([0-9]+) ([0-9]+) [0-9]+ [0-9]+% ${this.getContainerMountPath(container)}`)
+        const regex = new RegExp(`([0-9]+) ([0-9]+) [0-9]+ [0-9]+% ${this.getContainerMountPath(pod.container)}`)
         const matches = regex.exec(output!.replaceAll(/\s+/g, ' '))!
         const totalBytes = Number(matches[1]) * 1024 // KiloBytes to bytes
         const usedBytes = Number(matches[2]) * 1024 // KiloBytes to bytes
         const diskUsage = usedBytes / totalBytes
 
-        await log.info(`${Kubernetes.name}:${getContainerName(container)}:Pod:DiskUsage: ${numeral(usedBytes).format('0.0b')} / ${numeral(totalBytes).format('0.0b')} (${numeral(diskUsage).format('0.00%')})`)
+        await log.info(`${Kubernetes.name}:${getContainerName(pod.container)}:Pod:DiskUsage: ${numeral(usedBytes).format('0.0b')} / ${numeral(totalBytes).format('0.0b')} (${numeral(diskUsage).format('0.00%')})`)
     }
 
-    private async streamLogs(container: Container, namespace: string) {
-        const pod = await this.getPodByContainer(container, namespace)
-
-        if (!pod) {
-            await log.error(`${Kubernetes.name}:${getContainerName(container)}:${this.streamLogs.name}: Pod for container '${container}' not found in cluster namespace '${namespace}'!`)
-            return
-        }
-
+    private async streamLogs(pod: K8sPod) {
         const logStream = new Stream.PassThrough()
         logStream.on('data', async (chunk) => {
             const message = chunk.toString()
@@ -135,7 +108,7 @@ export class Kubernetes {
                 .replaceAll('\n', '')
                 .trim()
 
-            const prefix = `${Kubernetes.name}:${getContainerName(container)}:Logs`
+            const prefix = `${Kubernetes.name}:${getContainerName(pod.container)}:Logs`
             const logLevel = await this.parseLogLevel(message)
 
             switch (logLevel) {
@@ -170,21 +143,13 @@ export class Kubernetes {
             return {
                 name: pod.metadata!.name!,
                 namespace: namespace,
-                container: pod.metadata!.labels!['app.kubernetes.io/name'],
+                container: pod.metadata!.labels!['app.kubernetes.io/name'] as Container,
                 restarts: _.reduce(_.map(pod.status!.containerStatuses!, (status) => {
                     return status.restartCount
                 }), (a, b) => {
                     return a + b
                 }) ?? 0
             }
-        })
-    }
-
-    private async getPodByContainer(container: Container, namespace: string): Promise<K8sPod | undefined> {
-        const pods = await this.getPods(namespace)
-
-        return _.find(pods, (pod) => {
-            return pod.container === container
         })
     }
 
@@ -197,7 +162,6 @@ export class Kubernetes {
 
             dataStream.on('data', async (chunk) => {
                 const dataString = chunk.toString()
-                // await log.debug(`${Kubernetes.name}:${getContainerName(pod.container)}:${this.execute.name}:data-stream: ${dataString}`)
                 resolve(dataString)
             })
             errorStream.on('data', async (chunk) => {
@@ -223,6 +187,12 @@ export class Kubernetes {
         let mountPath: string
 
         switch (container) {
+            case Container.Bifrost:
+                mountPath = '/var/data/bifrost'
+                break
+            case Container.Gateway:
+                mountPath = '/etc/hosts'
+                break
             case Container.Thornode:
             case Container.Ethereum:
                 mountPath = '/root'
@@ -249,44 +219,6 @@ export class Kubernetes {
         }
 
         return mountPath
-    }
-
-    private getContainerFromNodeClass(node: Node): Container {
-        let container: Container
-
-        switch (node.constructor.name) {
-            case Thornode.name:
-                container = Container.Thornode
-                break
-            case Binance.name:
-                container = Container.Binance
-                break
-            case Bitcoin.name:
-                container = Container.BitcoinCash
-                break
-            case Ethereum.name:
-                container = Container.Ethereum
-                break
-            case Litecoin.name:
-                container = Container.Litecoin
-                break
-            case BitcoinCash.name:
-                container = Container.BitcoinCash
-                break
-            case Dogecoin.name:
-                container = Container.Dogecoin
-                break
-            case Cosmos.name:
-                container = Container.Cosmos
-                break
-            case Avalanche.name:
-                container = Container.Avalanche
-                break
-            default:
-                throw new Error(`${Kubernetes.name}:${this.getContainerFromNodeClass.name}: Unknown Node class: '${node.constructor.name}'`)
-        }
-
-        return container
     }
 
     private async parseLogLevel(message: string): Promise<string> {
