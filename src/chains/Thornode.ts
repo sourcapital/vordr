@@ -2,7 +2,7 @@ import axios from 'axios'
 import _ from 'underscore'
 import {handleError} from '../helpers/Error.js'
 import {Cosmos, Chain} from './Cosmos.js'
-import {HeartbeatType} from '../helpers/BetterUptime.js'
+import {HeartbeatType} from '../integrations/BetterUptime.js'
 
 export class Thornode extends Cosmos {
     private readonly thorRpcUrl: string

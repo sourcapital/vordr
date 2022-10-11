@@ -1,6 +1,6 @@
 import axios, {AxiosResponse} from 'axios'
 import _ from 'underscore'
-import {handleError} from './Error.js'
+import {handleError} from '../helpers/Error.js'
 import {config} from '../config.js'
 
 export declare type Heartbeat = {
@@ -82,7 +82,7 @@ export class BetterUptime {
             const response = await axios.get(heartbeat.attributes.url)
 
             if (response.status === 200) {
-                await log.info(`${BetterUptime.name}:${this.sendHeartbeat.name}: ${name} ${type} ❤️`)
+                await log.info(`Heartbeat:${name} ${type} ❤️`)
             } else {
                 await log.error(`${BetterUptime.name}:${this.sendHeartbeat.name}: HTTP status code: ${response.status}`)
             }

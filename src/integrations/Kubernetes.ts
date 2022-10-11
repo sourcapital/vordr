@@ -1,10 +1,10 @@
 import _ from 'underscore'
 import numeral from 'numeral'
+import * as Stream from 'stream'
 import k8s, {Exec, KubeConfig} from '@kubernetes/client-node'
 import {config} from '../config.js'
-import {handleError} from './Error.js'
-import {Cron} from './Cron.js'
-import * as Stream from 'stream'
+import {handleError} from '../helpers/Error.js'
+import {Cron} from '../helpers/Cron.js'
 import {Node} from '../chains/Node.js'
 import {Thornode} from '../chains/Thornode.js'
 import {Binance} from '../chains/Binance.js'
@@ -98,7 +98,7 @@ export class Kubernetes {
             return
         }
 
-        await log.info(`${Kubernetes.name}:${getContainerName(container)}:${this.monitorRestarts.name}: restarts = ${pod.restarts}`)
+        await log.info(`${Kubernetes.name}:${getContainerName(container)}:Pod:Restarts: ${pod.restarts}`)
     }
 
     private async monitorDiskUsage(container: Container, namespace: string) {
@@ -117,7 +117,7 @@ export class Kubernetes {
         const usedBytes = Number(matches[2]) * 1024 // KiloBytes to bytes
         const diskUsage = usedBytes / totalBytes
 
-        await log.info(`${Kubernetes.name}:${getContainerName(container)}:${this.monitorDiskUsage.name}: diskUsage = ${numeral(usedBytes).format('0.0b')} / ${numeral(totalBytes).format('0.0b')} (${numeral(diskUsage).format('0.00%')})`)
+        await log.info(`${Kubernetes.name}:${getContainerName(container)}:Pod:DiskUsage: ${numeral(usedBytes).format('0.0b')} / ${numeral(totalBytes).format('0.0b')} (${numeral(diskUsage).format('0.00%')})`)
     }
 
     private async streamLogs(container: Container, namespace: string) {

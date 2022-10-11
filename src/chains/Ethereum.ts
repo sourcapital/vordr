@@ -2,7 +2,7 @@ import axios, {AxiosResponse} from 'axios'
 import numeral from 'numeral'
 import {Node} from './Node.js'
 import {handleError} from '../helpers/Error.js'
-import {HeartbeatType} from '../helpers/BetterUptime.js'
+import {HeartbeatType} from '../integrations/BetterUptime.js'
 
 export enum Chain {
     Ethereum = 'ethereum',

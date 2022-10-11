@@ -65,7 +65,7 @@ spec:
       serviceAccountName: vordr
       containers:
         - name: vordr
-          image: registry.digitalocean.com/vordr/vordr@sha256:9fecd65a7862a9f3353f38b2416ff80906c0b8cfb71c55e4766a23a0b17fa641
+          image: sourcap/vordr:release-1.1.1@sha256:745f17ff75a51af18424ce03950ddcfd8ac2104c7e3802e824208a4eb2441fdb
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_ENV
