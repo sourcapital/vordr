@@ -33,7 +33,7 @@ export class Bitcoin extends Node {
     }
 
     async isUp(): Promise<boolean> {
-        await log.info(`${getChainName(this.chain)}: Checking if the node is up ...`)
+        await log.debug(`${getChainName(this.chain)}: Checking if the node is up ...`)
 
         try {
             const nodeResponse = await this.query('getblockchaininfo')
@@ -54,7 +54,7 @@ export class Bitcoin extends Node {
     }
 
     async isSynced(): Promise<boolean> {
-        await log.info(`${getChainName(this.chain)}: Checking if the node is synced ...`)
+        await log.debug(`${getChainName(this.chain)}: Checking if the node is synced ...`)
 
         try {
             // Await all time critical request together to minimize any delay (e.g. difference in block height)
@@ -102,7 +102,7 @@ export class Bitcoin extends Node {
     }
 
     async isVersionUpToDate(): Promise<boolean> {
-        await log.info(`${getChainName(this.chain)}: Checking if node version is up-to-date ...`)
+        await log.debug(`${getChainName(this.chain)}: Checking if node version is up-to-date ...`)
 
         try {
             const [nodeResponse, apiResponse] = await Promise.all([

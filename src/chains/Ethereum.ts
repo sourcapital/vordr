@@ -30,7 +30,7 @@ export class Ethereum extends Node {
     }
 
     async isUp(): Promise<boolean> {
-        await log.info(`${getChainName(this.chain)}: Checking if the node is up ...`)
+        await log.debug(`${getChainName(this.chain)}: Checking if the node is up ...`)
 
         try {
             const nodeResponse = await this.query('eth_syncing')
@@ -51,7 +51,7 @@ export class Ethereum extends Node {
     }
 
     async isSynced(): Promise<boolean> {
-        await log.info(`${getChainName(this.chain)}: Checking if the node is synced ...`)
+        await log.debug(`${getChainName(this.chain)}: Checking if the node is synced ...`)
 
         try {
             let apiRequest: Promise<AxiosResponse>
@@ -124,7 +124,7 @@ export class Ethereum extends Node {
     }
 
     async isVersionUpToDate(): Promise<boolean> {
-        await log.info(`${getChainName(this.chain)}: Checking if node version is up-to-date ...`)
+        await log.debug(`${getChainName(this.chain)}: Checking if node version is up-to-date ...`)
 
         try {
             const nodeResponse = await this.query('web3_clientVersion')
