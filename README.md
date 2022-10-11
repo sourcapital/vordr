@@ -4,9 +4,13 @@ A monitoring application for THORNodes.
 
 > A Vǫrðr or warden is a guardian spirit who will follow the soul of a living person from birth until death.
 
-## Supported Chains
+## Features
 
-All chains are monitored for `Health`, `Sync Status` and `Version` once per minute.
+- All chains are monitored for `Health`, `Sync Status` and `Version` once per minute
+- Kubernetes pod restarts are monitored every 5 minutes
+- Kubernetes pod disk usage is monitored every 24 hours
+
+## Supported Chains
 
 | Client   | Chain                                                              |
 |----------|--------------------------------------------------------------------|
@@ -87,10 +91,10 @@ Sign up at [betteruptime.com](https://betteruptime.com/?ref=8l7f) and follow the
 Logtail can be optionally used for log manangement.
 
 If `LOGTAIL_SOURCE_TOKEN` is set in the environment variables:
-- Vǫrðr's own logs are forwarded to Logtail
-- Loki logs of the Kubernetes namespace `thornode` are forwarded to Logtail
+- Vǫrðr forwards its own logs to Logtail
+- Vǫrðr forwards the logs of all chains to Logtail
 
-Make sure that Loki is installed on your Kubernetes cluster if you want the logs of your nodes to get forwarded (`make install-loki`, see the [docs](https://docs.thorchain.org/thornodes/managing#logs-management-loki)). Forwarded logs can also be queried within the built-in Grafana in Logtail. Read more [here](https://docs.logtail.com/how-to/querying-data-in-logtail#grafana).
+Forwarded logs can be queried and analyzed within the built-in Grafana in Logtail. Read more [here](https://docs.logtail.com/how-to/querying-data-in-logtail#grafana).
 
 #### Source Token
 
