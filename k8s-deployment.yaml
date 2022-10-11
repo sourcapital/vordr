@@ -4,9 +4,42 @@ metadata:
   name: vordr
 ---
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vordr
+  namespace: vordr
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: thornode
+  name: pod-logs-exec
+rules:
+  - apiGroups: [ '' ]
+    resources: [ 'pods', 'pods/log' ]
+    verbs: [ 'get', 'list' ]
+  - apiGroups: [ '' ]
+    resources: [ 'pods/exec' ]
+    verbs: [ 'get', 'create' ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: vordr
+  namespace: thornode
+subjects:
+  - kind: ServiceAccount
+    name: vordr
+    namespace: vordr
+roleRef:
+  kind: Role
+  name: pod-logs-exec
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
 kind: Secret
 metadata:
-  name: vordr-registry
+  name: vordr-pull-secret
   namespace: vordr
 data:
   .dockerconfigjson: eyJhdXRocyI6eyJyZWdpc3RyeS5kaWdpdGFsb2NlYW4uY29tIjp7ImF1dGgiOiJaRzl3WDNZeFh6SXpPVFpsWW1RNU1URTJZak0xTURabE9UY3hOVE01TnpNMVlqTTVZall3WVRsak5tVXlOMkppWldWbFpHTm1aamRsWXpreFlXTXlZalF3WW1FMk1ERTZaRzl3WDNZeFh6SXpPVFpsWW1RNU1URTJZak0xTURabE9UY3hOVE01TnpNMVlqTTVZall3WVRsak5tVXlOMkppWldWbFpHTm1aamRsWXpreFlXTXlZalF3WW1FMk1ERT0ifX19
@@ -29,9 +62,10 @@ spec:
       labels:
         app: vordr
     spec:
+      serviceAccountName: vordr
       containers:
         - name: vordr
-          image: registry.digitalocean.com/vordr/vordr@sha256:93b89810a6d3f793b18b105bf05ec07c2204fc7246964a8e9894d666a03e45a0
+          image: registry.digitalocean.com/vordr/vordr@sha256:9fecd65a7862a9f3353f38b2416ff80906c0b8cfb71c55e4766a23a0b17fa641
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_ENV
@@ -45,4 +79,4 @@ spec:
               cpu: 1
               memory: 1Gi
       imagePullSecrets:
-        - name: vordr-registry
+        - name: vordr-pull-secret

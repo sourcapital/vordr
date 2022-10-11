@@ -12,7 +12,7 @@ export enum Chain {
     Dogecoin = 'dogecoin'
 }
 
-const getChainName = (chain: Chain): string => {
+const getChainName = (chain: string | Chain): string => {
     return Object.entries(Chain).find(([, val]) => val === chain)?.[0]!
 }
 

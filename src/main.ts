@@ -1,10 +1,9 @@
-import {CronJob} from 'cron'
 import _ from 'underscore'
 import {config} from './config.js'
 import {Log} from './helpers/Log.js'
 import {BetterUptime} from './helpers/BetterUptime.js'
-import {Loki} from './helpers/Loki.js'
-import {handleError} from './helpers/Error.js'
+import {Cron} from './helpers/Cron.js'
+import {Kubernetes} from './helpers/Kubernetes.js'
 import {Node} from './chains/Node.js'
 import {Thornode} from './chains/Thornode.js'
 import {Binance} from './chains/Binance.js'
@@ -50,27 +49,19 @@ if (config.nodeENV === 'production') {
     ]
 }
 
-// Setup heartbeats in correct sequence
+// Setup heartbeats in correct order
 await log.info('Initializing heartbeats ...')
 for (const node of nodes) await node.initHeartbeats()
 
-// Setup Loki log stream
-await log.info('Initializing Loki stream ...')
-await new Loki().connect()
+// Setup kubernetes monitoring and log streams
+const kubernetes = new Kubernetes()
+await kubernetes.setupLogStreams(nodes)
+await kubernetes.setupRestartMonitoring(nodes)
+await kubernetes.setupDiskUsageMonitoring(nodes)
 
-// Run node monitoring every minute
-new CronJob('* * * * *', async () => {
-    try {
-        // Check all nodes
-        const jobs = _.flatten(_.map(nodes, (node) => {
-            return [
-                node.isUp(),
-                node.isSynced(),
-                node.isVersionUpToDate()
-            ]
-        }))
-        await Promise.all(jobs)
-    } catch (error) {
-        await handleError(error)
-    }
-}).start()
+// Run node health monitoring every minute
+new Cron('* * * * *', async () => {
+    await Promise.all(_.flatten(_.map(nodes, (node) => {
+        return [node.isUp(), node.isSynced(), node.isVersionUpToDate()]
+    })))
+}).run()
