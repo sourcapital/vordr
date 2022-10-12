@@ -102,6 +102,7 @@ export class Kubernetes {
 
     private async streamLogs(pod: K8sPod) {
         const logStream = new Stream.PassThrough()
+
         logStream.on('data', async (chunk) => {
             const message = chunk.toString()
                 .replaceAll(/\s+/g, ' ')
@@ -125,6 +126,19 @@ export class Kubernetes {
                     await log.error(`${prefix}: ${message}`)
                     break
             }
+        })
+
+        logStream.on('end', async () => {
+            await log.debug(`${Kubernetes.name}:log-stream: Ended!`)
+        })
+
+        logStream.on('close', async () => {
+            await log.debug(`${Kubernetes.name}:log-stream: Closed!`)
+        })
+
+        logStream.on('error', async (error) => {
+            await log.error(`${Kubernetes.name}:log-stream: Error!`)
+            await handleError(error)
         })
 
         const k8sLog = new k8s.Log(this.k8sConfig)
