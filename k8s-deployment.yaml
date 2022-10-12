@@ -36,15 +36,6 @@ roleRef:
   name: pod-logs-exec
   apiGroup: rbac.authorization.k8s.io
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: vordr-pull-secret
-  namespace: vordr
-data:
-  .dockerconfigjson: eyJhdXRocyI6eyJyZWdpc3RyeS5kaWdpdGFsb2NlYW4uY29tIjp7ImF1dGgiOiJaRzl3WDNZeFh6SXpPVFpsWW1RNU1URTJZak0xTURabE9UY3hOVE01TnpNMVlqTTVZall3WVRsak5tVXlOMkppWldWbFpHTm1aamRsWXpreFlXTXlZalF3WW1FMk1ERTZaRzl3WDNZeFh6SXpPVFpsWW1RNU1URTJZak0xTURabE9UY3hOVE01TnpNMVlqTTVZall3WVRsak5tVXlOMkppWldWbFpHTm1aamRsWXpreFlXTXlZalF3WW1FMk1ERT0ifX19
-type: kubernetes.io/dockerconfigjson
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -65,7 +56,7 @@ spec:
       serviceAccountName: vordr
       containers:
         - name: vordr
-          image: sourcap/vordr:release-1.2.0@sha256:8c94e385af4500972d2c0061994663f12b60405f6c8886407ad778d6c4549da1
+          image: sourcap/vordr:release-1.2.1@sha256:f6828bdb295bea0662f14f606ffe770133efb626ba93a1260e349e1932bc159a
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_ENV
@@ -78,5 +69,3 @@ spec:
             limits:
               cpu: 1
               memory: 1Gi
-      imagePullSecrets:
-        - name: vordr-pull-secret
