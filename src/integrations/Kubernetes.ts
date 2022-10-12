@@ -86,6 +86,11 @@ export class Kubernetes {
 
     private async monitorRestarts(pod: K8sPod) {
         await log.info(`${Kubernetes.name}:${getContainerName(pod.container)}:Pod:Restarts: ${pod.restarts}`)
+
+        // Alert for any restarts
+        if (pod.restarts > 0) {
+            await betterUptime.createRestartIncident(getContainerName(pod.container), pod.restarts)
+        }
     }
 
     private async monitorDiskUsage(pod: K8sPod) {
@@ -96,8 +101,12 @@ export class Kubernetes {
         const totalBytes = Number(matches[1]) * 1024 // KiloBytes to bytes
         const usedBytes = Number(matches[2]) * 1024 // KiloBytes to bytes
         const diskUsage = usedBytes / totalBytes
-
         await log.info(`${Kubernetes.name}:${getContainerName(pod.container)}:Pod:DiskUsage: ${numeral(usedBytes).format('0.0b')} / ${numeral(totalBytes).format('0.0b')} (${numeral(diskUsage).format('0.00%')})`)
+
+        // Alert if disk usage is above 85%
+        if (diskUsage > 0.85) {
+            await betterUptime.createDiskUsageIncident(getContainerName(pod.container), usedBytes, totalBytes)
+        }
     }
 
     private async streamLogs(pod: K8sPod) {

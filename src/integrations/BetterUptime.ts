@@ -2,8 +2,10 @@ import axios, {AxiosResponse} from 'axios'
 import _ from 'underscore'
 import {handleError} from '../helpers/Error.js'
 import {config} from '../config.js'
+import numeral from 'numeral'
+import moment from 'moment'
 
-export declare type Heartbeat = {
+declare type Heartbeat = {
     id: string,
     type: string,
     attributes: {
@@ -25,7 +27,7 @@ export declare type Heartbeat = {
     }
 }
 
-export declare type HeartbeatGroup = {
+declare type HeartbeatGroup = {
     id: string,
     type: string,
     attributes: {
@@ -37,15 +39,30 @@ export declare type HeartbeatGroup = {
     }
 }
 
-export declare type Incident = {
-    id: string
-    type: string
+declare type Incident = {
+    id: string,
+    type: string,
+    attributes: {
+        name: string,
+        url: string,
+        cause: string,
+        started_at: string,
+        call: boolean
+        sms: boolean,
+        email: boolean
+        push: boolean,
+    }
 }
 
 export enum HeartbeatType {
     HEALTH = 'Health',
     SYNC_STATUS = 'Sync Status',
     VERSION = 'Version'
+}
+
+enum IncidentType {
+    RESTARTS = 'Restarts',
+    DISK_USAGE = 'Disk Usage'
 }
 
 export class BetterUptime {
@@ -67,15 +84,13 @@ export class BetterUptime {
                 // Create new heartbeat
                 await this.getHeartbeat(name, type)
             } else {
-                await log.debug(`${BetterUptime.name}:${this.send.name}: Heartbeat already created: '${name} ${type}'`)
+                await log.debug(`${BetterUptime.name}: Heartbeat already created: '${name} ${type}'`)
             }
         }
     }
 
     async sendHeartbeat(name: string, type: HeartbeatType) {
-        if (config.nodeENV !== 'production') {
-            return
-        }
+        if (config.nodeENV !== 'production') return
 
         try {
             const heartbeat = await this.getHeartbeat(name, type)
@@ -91,16 +106,48 @@ export class BetterUptime {
         }
     }
 
+    async createRestartIncident(name: string, restartCount: number) {
+        const incident = await this.getIncident(name, IncidentType.RESTARTS)
+
+        let previousRestarts = 0
+        if (incident) {
+            previousRestarts = Number(/\(total: ([0-9]+)\)/g.exec(incident.attributes.cause)?.slice(1, 2)[0])
+        }
+
+        if (!incident || restartCount > previousRestarts) {
+            await this.createIncident(
+                `${name} ${IncidentType.RESTARTS}`,
+                `${name} pod restarted! (total: ${restartCount})`
+            )
+        } else if (incident && restartCount < previousRestarts) {
+            // Previous restart count might be larger because pod restarts get reset when updating the pod
+            await this.deleteIncidents(incident.id)
+        }
+    }
+
+    async createDiskUsageIncident(name: string, usedBytes: number, totalBytes: number) {
+        const diskUsage = usedBytes / totalBytes
+        const incident = await this.getIncident(name, IncidentType.DISK_USAGE)
+
+        if (!incident) {
+            await this.createIncident(
+                `${name} ${IncidentType.DISK_USAGE}`,
+                `${name} pod has high disk usage: ${numeral(usedBytes).format('0.0b')} / ${numeral(totalBytes).format('0.0b')} (${numeral(diskUsage).format('0.00%')})`
+            )
+        }
+    }
+
     async deleteAll() {
         await this.deleteAllHeartbeats()
         await this.deleteAllHeartbeatGroups()
+        await this.deleteAllIncidents()
     }
 
     async deleteAllHeartbeats() {
         let heartbeats = await this.getAllHeartbeats()
 
         for (const heartbeat of heartbeats) {
-            await log.debug(`${BetterUptime.name}:${this.send.name}: Deleting heartbeat: '${heartbeat.attributes.name}'`)
+            await log.debug(`${BetterUptime.name}: Deleting heartbeat: '${heartbeat.attributes.name}'`)
             await this.send('DELETE', `heartbeats/${heartbeat.id}`)
         }
     }
@@ -109,21 +156,22 @@ export class BetterUptime {
         const heartbeatGroups = await this.getAllHeartbeatGroups()
 
         for (const heartbeatGroup of heartbeatGroups) {
-            await log.debug(`${BetterUptime.name}:${this.send.name}: Deleting heartbeat group: '${heartbeatGroup.attributes.name}'`)
+            await log.debug(`${BetterUptime.name}: Deleting heartbeat group: '${heartbeatGroup.attributes.name}'`)
             await this.send('DELETE', `heartbeat-groups/${heartbeatGroup.id}`)
         }
     }
 
     async deleteAllIncidents() {
-        let incidents = await this.getAllIncidents()
+        const incidents = await this.getAllIncidents()
 
-        while (incidents.length !== 0) {
-            for (const incident of incidents) {
-                await log.debug(`${BetterUptime.name}:${this.send.name}: Deleting incident: ${incident.id}`)
-                await this.send('DELETE', `incidents/${incident.id}`)
-            }
-            incidents = await this.getAllIncidents()
+        for (const incident of incidents) {
+            await this.deleteIncidents(incident.id)
         }
+    }
+
+    private async deleteIncidents(id: string) {
+        await log.debug(`${BetterUptime.name}: Deleting incident: ${id}`)
+        await this.send('DELETE', `incidents/${id}`)
     }
 
     private async getHeartbeat(name: string, type: HeartbeatType): Promise<Heartbeat> {
@@ -135,16 +183,17 @@ export class BetterUptime {
         const group = await this.getHeartbeatGroup(name)
 
         if (!heartbeat) {
-            await log.debug(`${BetterUptime.name}:${this.send.name}: Creating new heartbeat: '${name} ${type}'`)
+            await log.debug(`${BetterUptime.name}: Creating new heartbeat: '${name} ${type}'`)
 
             // Create new heartbeat
             const response = await this.send('POST', 'heartbeats', {
                 name: `${name} ${type}`,
                 period: 60, // 1min
                 grace: 300, // 5min
-                heartbeat_group_id: group.id
+                heartbeat_group_id: group.id,
+                email: true,
+                push: true
             })
-
             heartbeat = response.data.data as Heartbeat
         }
 
@@ -158,17 +207,40 @@ export class BetterUptime {
         }))
 
         if (!group) {
-            await log.debug(`${BetterUptime.name}:${this.send.name}: Creating new heartbeat group: '${name}'`)
+            await log.debug(`${BetterUptime.name}: Creating new heartbeat group: '${name}'`)
 
             // Create new heartbeat group
             const response = await this.send('POST', 'heartbeat-groups', {
                 name: name
             })
-
             group = response.data.data as HeartbeatGroup
         }
 
         return group
+    }
+
+    private async getIncident(name: string, type: IncidentType): Promise<Incident | undefined> {
+        const incidents = await this.getAllIncidents()
+
+        return _.first(_.filter(incidents, (incident) => {
+            return incident.attributes.name === `${name} ${type}`
+        }))
+    }
+
+    private async createIncident(name: string, summary: string) {
+        // if (config.nodeENV !== 'production') return
+
+        try {
+            await this.send('POST', 'incidents', {
+                requester_email: 'vordr@vordr.vordr',
+                name: name,
+                summary: summary,
+                email: true,
+                push: true
+            })
+        } catch (error) {
+            await handleError(error)
+        }
     }
 
     private async getAllHeartbeats(): Promise<Array<Heartbeat>> {
@@ -182,7 +254,11 @@ export class BetterUptime {
     }
 
     private async getAllIncidents(): Promise<Array<Incident>> {
-        const response = await this.send('GET', 'incidents')
+        const response = await this.send('GET', 'incidents', {
+            from: '1970-01-01',
+            to: moment().format('YYYY-MM-DD')
+        })
+
         return response.data.data
     }
 
