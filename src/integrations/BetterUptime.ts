@@ -228,7 +228,7 @@ export class BetterUptime {
     }
 
     private async createIncident(name: string, summary: string) {
-        // if (config.nodeENV !== 'production') return
+        if (config.nodeENV !== 'production') return
 
         try {
             await this.send('POST', 'incidents', {
