@@ -61,10 +61,10 @@ spec:
           env:
             - name: NODE_ENV
               value: 'production'
-            - name: LOGTAIL_SOURCE_TOKEN
-              value: '{LOGTAIL_SOURCE_TOKEN}'
             - name: BETTERUPTIME_API_KEY
               value: '{BETTERUPTIME_API_KEY}'
+            - name: LOGTAIL_SOURCE_TOKEN
+              value: '{LOGTAIL_SOURCE_TOKEN}'
           resources:
             limits:
               cpu: 1
