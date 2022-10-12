@@ -74,11 +74,10 @@ kubectl delete -f k8s-deployment.yaml
 
 ### BetterUptime
 
-BetterUptime's `Heartbeats` are used for alerting and incident management.
+BetterUptime is used for alerting and incident management.
 
-- Heartbeats are sent once per minute for every node's `Health`, `Sync Status` and `Version`
-
-If BetterUptime does not receive a heartbeat from Vǫrðr for a certain period of time (`5m` by default), it will notify you and your team based on your escalation policy.
+- Heartbeats are sent every minute for `Health`, `Sync Status` and `Version` of the nodes
+- Incidents are created for missed heartbeats as well as restarts and high disk usage of Kubernetes pods
 
 #### API Key
 
