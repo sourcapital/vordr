@@ -107,33 +107,50 @@ export class BetterUptime {
     }
 
     async createRestartIncident(name: string, restartCount: number) {
-        const incident = await this.getIncident(name, IncidentType.RESTARTS)
+        let incidents = await this.getAllIncidents()
+        incidents = _.filter(incidents, (incident) => {
+            return incident.attributes.name === `${name} ${IncidentType.RESTARTS}`
+        })
+        incidents = _.sortBy(incidents, (incident) => {
+            return incident.attributes.started_at
+        }).reverse()
+        const latestIncident = _.first(incidents)
+        const previousRestarts = latestIncident ? Number(/\(total: ([0-9]+)\)/g.exec(latestIncident.attributes.cause)!.slice(1, 2)[0]) : 0
 
-        let previousRestarts = 0
-        if (incident) {
-            previousRestarts = Number(/\(total: ([0-9]+)\)/g.exec(incident.attributes.cause)?.slice(1, 2)[0])
-        }
-
-        if (!incident || restartCount > previousRestarts) {
+        if ((!latestIncident && restartCount !== 0) || restartCount > previousRestarts) {
             await this.createIncident(
                 `${name} ${IncidentType.RESTARTS}`,
                 `${name} pod restarted! (total: ${restartCount})`
             )
-        } else if (incident && restartCount < previousRestarts) {
-            // Previous restart count might be larger because pod restarts get reset when updating the pod
-            await this.deleteIncidents(incident.id)
+        } else if (latestIncident && restartCount < previousRestarts) {
+            // Delete related incidents if restartCount < previousRestarts which happens if a pod is updated to a new version
+            for (const incident of incidents) {
+                await this.deleteIncidents(incident.id)
+            }
         }
     }
 
-    async createDiskUsageIncident(name: string, usedBytes: number, totalBytes: number) {
+    async createDiskUsageIncident(name: string, usedBytes: number, totalBytes: number, threshold: number) {
+        let incidents = await this.getAllIncidents()
+        incidents = _.filter(incidents, (incident) => {
+            return incident.attributes.name === `${name} ${IncidentType.DISK_USAGE}`
+        })
+        incidents = _.sortBy(incidents, (incident) => {
+            return incident.attributes.started_at
+        }).reverse()
+        const latestIncident = _.first(incidents)
         const diskUsage = usedBytes / totalBytes
-        const incident = await this.getIncident(name, IncidentType.DISK_USAGE)
 
-        if (!incident) {
+        if (!latestIncident && diskUsage > threshold) {
             await this.createIncident(
                 `${name} ${IncidentType.DISK_USAGE}`,
                 `${name} pod has high disk usage: ${numeral(usedBytes).format('0.0b')} / ${numeral(totalBytes).format('0.0b')} (${numeral(diskUsage).format('0.00%')})`
             )
+        } else if (latestIncident && diskUsage < threshold) {
+            // Delete related incidents if disk usage falls below threshold
+            for (const incident of incidents) {
+                await this.deleteIncidents(incident.id)
+            }
         }
     }
 
@@ -217,14 +234,6 @@ export class BetterUptime {
         }
 
         return group
-    }
-
-    private async getIncident(name: string, type: IncidentType): Promise<Incident | undefined> {
-        const incidents = await this.getAllIncidents()
-
-        return _.first(_.filter(incidents, (incident) => {
-            return incident.attributes.name === `${name} ${type}`
-        }))
     }
 
     private async createIncident(name: string, summary: string) {

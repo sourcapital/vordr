@@ -105,7 +105,7 @@ export class Kubernetes {
 
         // Alert if disk usage is above 85%
         if (diskUsage > 0.85) {
-            await betterUptime.createDiskUsageIncident(getContainerName(pod.container), usedBytes, totalBytes)
+            await betterUptime.createDiskUsageIncident(getContainerName(pod.container), usedBytes, totalBytes, 0.85)
         }
     }
 
