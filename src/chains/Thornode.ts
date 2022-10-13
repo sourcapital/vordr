@@ -2,8 +2,8 @@ import axios from 'axios'
 import _ from 'underscore'
 import numeral from 'numeral'
 import {handleError} from '../helpers/Error.js'
-import {Cosmos, Chain} from './Cosmos.js'
-import {HeartbeatType} from '../integrations/BetterUptime.js'
+import {Chain, Cosmos} from './Cosmos.js'
+import {HeartbeatType, IncidentType} from '../integrations/BetterUptime.js'
 
 export class Thornode extends Cosmos {
     private readonly thorRpcUrl: string
@@ -150,6 +150,57 @@ export class Thornode extends Cosmos {
             // Alert if slash points are above threshold
             if (node.slashPoints > threshold) {
                 await betterUptime.createSlashPointIncident(Thornode.name, node.slashPoints, threshold, min, max)
+            } else {
+                await betterUptime.resolveIncidents(Thornode.name, IncidentType.SLASH_POINTS)
+            }
+        } catch (error) {
+            await handleError(error)
+        }
+    }
+
+    async monitorJailing() {
+        try {
+            // Get the thornode's address from the Kubernetes pod
+            const nodeAddress = await kubernetes.getThornodeAddress()
+
+            // Await all time critical request together to minimize any delay (e.g. difference in block height)
+            const [thorRpcNodeResponse, cosmosRpcNodeResponse] = await Promise.all([
+                axios.get(`${this.thorRpcUrl}/thorchain/node/${nodeAddress}`),
+                axios.get(`${this.url}/status`)
+            ])
+
+            if (thorRpcNodeResponse.status !== 200) {
+                await log.error(`${Thornode.name}:${this.monitorJailing.name}: ThorRpc HTTP status code: ${thorRpcNodeResponse.status}`)
+                return
+            }
+            if (cosmosRpcNodeResponse.status !== 200) {
+                await log.error(`${Thornode.name}:${this.monitorJailing.name}: CosmosRpc HTTP status code: ${cosmosRpcNodeResponse.status}`)
+                return
+            }
+
+            const node = thorRpcNodeResponse.data
+            const jail = node.jail
+
+            if (node.status.toLowerCase() !== 'active') {
+                await log.info(`${Thornode.name}:${this.monitorJailing.name}: Node is not active. Skipping jail monitoring ...`)
+                return
+            }
+            if (!jail.release_height) {
+                await log.info(`${Thornode.name}:${this.monitorJailing.name}: Node is not jailed. Skipping jail monitoring ...`)
+                return
+            }
+
+            const currentBlockHeight = Number(cosmosRpcNodeResponse.data.result.sync_info.latest_block_height)
+
+            // Alert if node is jailed
+            if (jail.release_height > currentBlockHeight) {
+                const reason = jail.reason ?? 'unknown'
+                const diff = jail.release_height - currentBlockHeight
+                await log.info(`${Thornode.name}:Jail: Node is jailed for ${numeral(diff).format('0,0')} more blocks! (releaseHeight = ${numeral(jail.release_height).format('0,0')}, reason = '${reason}')`)
+
+                await betterUptime.createJailIncident(Thornode.name, reason, jail.releaseHeight, currentBlockHeight)
+            } else {
+                await betterUptime.resolveIncidents(Thornode.name, IncidentType.JAIL)
             }
         } catch (error) {
             await handleError(error)

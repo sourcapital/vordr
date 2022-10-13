@@ -61,10 +61,11 @@ export enum HeartbeatType {
     VERSION = 'Version'
 }
 
-enum IncidentType {
+export enum IncidentType {
     RESTARTS = 'Restarts',
     DISK_USAGE = 'Disk Usage',
-    SLASH_POINTS = 'Slash Points'
+    SLASH_POINTS = 'Slash Points',
+    JAIL = 'Jail'
 }
 
 export class BetterUptime {
@@ -113,16 +114,11 @@ export class BetterUptime {
         const latestIncident = _.first(incidents.reverse())
         const previousRestarts = latestIncident ? Number(/\(total: ([0-9]+)\)/g.exec(latestIncident.attributes.cause)!.slice(1, 2)[0]) : 0
 
-        if ((!latestIncident && restartCount !== 0) || restartCount > previousRestarts) {
+        if (!latestIncident && restartCount > previousRestarts) {
             await this.createIncident(
                 `${name} ${IncidentType.RESTARTS}`,
                 `${name} pod restarted! (total: ${restartCount})`
             )
-        } else if (latestIncident && restartCount < previousRestarts) {
-            // Delete related incidents if restartCount < previousRestarts which happens if a pod is updated to a new version
-            for (const incident of incidents) {
-                await this.deleteIncident(incident.id)
-            }
         }
     }
 
@@ -136,11 +132,6 @@ export class BetterUptime {
                 `${name} ${IncidentType.DISK_USAGE}`,
                 `${name} pod has high disk usage: ${numeral(usedBytes).format('0.0b')} / ${numeral(totalBytes).format('0.0b')} (${numeral(diskUsage).format('0.00%')})`
             )
-        } else if (latestIncident && diskUsage < threshold) {
-            // Resolve related incidents if disk usage falls below threshold
-            for (const incident of incidents) {
-                await this.resolveIncident(incident.id)
-            }
         }
     }
 
@@ -153,11 +144,18 @@ export class BetterUptime {
                 `${name} ${IncidentType.SLASH_POINTS}`,
                 `${name} has accumulated ${numeral(slashPoints).format('0,0')} slash points and is amongst the worst perfoming 10% of nodes: ${numeral(min).format('0,0')} (min), ${numeral(threshold).format('0,0')} (threshold), ${numeral(max).format('0,0')} (max)`
             )
-        } else if (latestIncident && slashPoints < threshold) {
-            // Resolve related incidents if slash points falls below threshold
-            for (const incident of incidents) {
-                await this.resolveIncident(incident.id)
-            }
+        }
+    }
+
+    async createJailIncident(name: string, reason: string, releaseHeight: number, currentBlockHeight: number) {
+        let incidents = await this.getAllIncidents(`${name} ${IncidentType.JAIL}`)
+        const latestIncident = _.first(incidents.reverse())
+
+        if (!latestIncident && releaseHeight > currentBlockHeight) {
+            await this.createIncident(
+                `${name} ${IncidentType.JAIL}`,
+                `${name} has been jailed! (releaseHeight = ${numeral(releaseHeight).format('0,0')}, reason = '${reason}')`
+            )
         }
     }
 
@@ -187,6 +185,22 @@ export class BetterUptime {
 
     async deleteAllIncidents() {
         const incidents = await this.getAllIncidents(undefined, false)
+
+        for (const incident of incidents) {
+            await this.deleteIncident(incident.id)
+        }
+    }
+
+    async resolveIncidents(name: string, type: IncidentType) {
+        let incidents = await this.getAllIncidents(`${name} ${type}`)
+
+        for (const incident of incidents) {
+            await this.resolveIncident(incident.id)
+        }
+    }
+
+    async deleteIncidents(name: string, type: IncidentType) {
+        let incidents = await this.getAllIncidents(`${name} ${type}`)
 
         for (const incident of incidents) {
             await this.deleteIncident(incident.id)

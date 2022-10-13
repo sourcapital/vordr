@@ -72,5 +72,5 @@ new Cron('* * * * *', async () => {
         return node.constructor.name === Thornode.name
     }) as Thornode
 
-    await Promise.all([thornode.monitorSlashPoints()])
+    await Promise.all([thornode.monitorSlashPoints(), thornode.monitorJailing()])
 }).run()

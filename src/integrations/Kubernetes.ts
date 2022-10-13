@@ -5,6 +5,7 @@ import k8s, {Exec, KubeConfig} from '@kubernetes/client-node'
 import {config} from '../config.js'
 import {handleError} from '../helpers/Error.js'
 import {Cron} from '../helpers/Cron.js'
+import {IncidentType} from './BetterUptime.js'
 
 declare type K8sPod = {
     name: string,
@@ -101,6 +102,8 @@ export class Kubernetes {
         // Alert for any restarts
         if (pod.restarts > 0) {
             await betterUptime.createRestartIncident(getContainerName(pod.container), pod.restarts)
+        } else {
+            await betterUptime.deleteIncidents(getContainerName(pod.container), IncidentType.RESTARTS)
         }
     }
 
@@ -117,6 +120,8 @@ export class Kubernetes {
         // Alert if disk usage is above 85%
         if (diskUsage > 0.85) {
             await betterUptime.createDiskUsageIncident(getContainerName(pod.container), usedBytes, totalBytes, 0.85)
+        } else {
+            await betterUptime.resolveIncidents(getContainerName(pod.container), IncidentType.DISK_USAGE)
         }
     }
 
