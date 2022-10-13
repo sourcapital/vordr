@@ -145,7 +145,7 @@ export class Thornode extends Cosmos {
                 return node.slashPoints
             }).slashPoints
 
-            await log.info(`${Thornode.name}:SlashPoints: ${node.slashPoints} | network = ${numeral(min).format('0,0')} (min), ${numeral(threshold).format('0,0')} (threshold), ${numeral(max).format('0,0')} (max)`)
+            await log.info(`${Thornode.name}:SlashPoints: ${numeral(node.slashPoints).format('0,0')} | network = ${numeral(min).format('0,0')} (min), ${numeral(threshold).format('0,0')} (threshold), ${numeral(max).format('0,0')} (max)`)
 
             // Alert if slash points are above threshold
             if (node.slashPoints > threshold) {
@@ -190,13 +190,16 @@ export class Thornode extends Cosmos {
                 return
             }
 
+            const releaseHeight = jail.release_height
             const currentBlockHeight = Number(cosmosRpcNodeResponse.data.result.sync_info.latest_block_height)
 
+            await log.info(`${Thornode.name}:Jail: releaseHeight = ${numeral(releaseHeight).format('0,0')} | currentBlockHeight = ${numeral(currentBlockHeight).format('0,0')}`)
+
             // Alert if node is jailed
-            if (jail.release_height > currentBlockHeight) {
+            if (releaseHeight > currentBlockHeight) {
                 const reason = jail.reason ?? 'unknown'
-                const diff = jail.release_height - currentBlockHeight
-                await log.info(`${Thornode.name}:Jail: Node is jailed for ${numeral(diff).format('0,0')} more blocks! (releaseHeight = ${numeral(jail.release_height).format('0,0')}, reason = '${reason}')`)
+                const diff = releaseHeight - currentBlockHeight
+                await log.info(`${Thornode.name}:Jail: Node is jailed for ${numeral(diff).format('0,0')} more blocks! (releaseHeight = ${numeral(releaseHeight).format('0,0')}, reason = '${reason}')`)
 
                 await betterUptime.createJailIncident(Thornode.name, reason, jail.releaseHeight, currentBlockHeight)
             } else {
