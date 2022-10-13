@@ -47,41 +47,52 @@ export class Kubernetes {
         this.k8sApi = this.k8sConfig.makeApiClient(k8s.CoreV1Api)
     }
 
-    async setupRestartMonitoring(namespace: string) {
+    async setupRestartMonitoring(schedule: string) {
         await log.info(`${Kubernetes.name}: Setup pod restart monitoring ...`)
 
-        // Run every 5 minutes
-        new Cron('*/5 * * * *', async () => {
-            const pods = await this.getPods(namespace)
+        new Cron(schedule, async () => {
+            const pods = await this.getPods('thornode')
             await Promise.all(_.map(pods, (pod) => {
                 return this.monitorRestarts(pod)
             }))
         }).run()
     }
 
-    async setupDiskUsageMonitoring(namespace: string) {
+    async setupDiskUsageMonitoring(schedule: string) {
         await log.info(`${Kubernetes.name}: Setup pod disk usage monitoring ...`)
 
-        // Run every hour
-        new Cron('0 * * * *', async () => {
-            const pods = await this.getPods(namespace)
+        new Cron(schedule, async () => {
+            const pods = await this.getPods('thornode')
             await Promise.all(_.map(pods, (pod) => {
                 return this.monitorDiskUsage(pod)
             }))
         }).run()
     }
 
-    async setupLogStreams(namespace: string) {
+    async setupLogStreams() {
         await log.info(`${Kubernetes.name}: Setup log streams ...`)
 
         try {
-            const pods = await this.getPods(namespace)
+            const pods = await this.getPods('thornode')
             await Promise.all(_.map(pods, (pod) => {
                 return this.streamLogs(pod)
             }))
         } catch (error) {
             await handleError(error)
         }
+    }
+
+    async getThornodeAddress(): Promise<string> {
+        const pods = await this.getPods('thornode')
+        const pod = _.find(pods, (pod) => {
+            return pod.container === Container.Thornode
+        })!
+
+        return await kubernetes.execute(pod, [
+            '/bin/sh',
+            '-c',
+            'echo "$SIGNER_PASSWD" | thornode keys show "$SIGNER_NAME" -a --keyring-backend file'
+        ])
     }
 
     private async monitorRestarts(pod: K8sPod) {
@@ -95,9 +106,9 @@ export class Kubernetes {
 
     private async monitorDiskUsage(pod: K8sPod) {
         // Calculate pod disk usage
-        const output = await this.execute(pod, ['df', '-k'])
+        const output = await this.execute(pod, ['/bin/sh', '-c', 'df -k'])
         const regex = new RegExp(`([0-9]+) ([0-9]+) [0-9]+ [0-9]+% ${this.getContainerMountPath(pod.container)}`)
-        const matches = regex.exec(output!.replaceAll(/\s+/g, ' '))!
+        const matches = regex.exec(output)!
         const totalBytes = Number(matches[1]) * 1024 // KiloBytes to bytes
         const usedBytes = Number(matches[2]) * 1024 // KiloBytes to bytes
         const diskUsage = usedBytes / totalBytes
@@ -111,6 +122,7 @@ export class Kubernetes {
 
     private async streamLogs(pod: K8sPod) {
         const logStream = new Stream.PassThrough()
+        const prefix = `${Kubernetes.name}:${getContainerName(pod.container)}:Logs`
 
         logStream.on('data', async (chunk) => {
             const message = chunk.toString()
@@ -118,7 +130,6 @@ export class Kubernetes {
                 .replaceAll('\n', '')
                 .trim()
 
-            const prefix = `${Kubernetes.name}:${getContainerName(pod.container)}:Logs`
             const logLevel = await this.parseLogLevel(message)
 
             switch (logLevel) {
@@ -137,16 +148,14 @@ export class Kubernetes {
             }
         })
 
-        logStream.on('end', async () => {
-            await log.debug(`${Kubernetes.name}:log-stream: Ended!`)
-        })
-
         logStream.on('close', async () => {
-            await log.debug(`${Kubernetes.name}:log-stream: Closed!`)
+            await log.debug(`${prefix}:stream: Closed!`)
+            await log.debug(`${prefix}:stream: Reconnecting ...`)
+            await this.streamLogs(pod)
         })
 
         logStream.on('error', async (error) => {
-            await log.error(`${Kubernetes.name}:log-stream: Error!`)
+            await log.error(`${prefix}:stream: Error!`)
             await handleError(error)
         })
 
@@ -183,10 +192,17 @@ export class Kubernetes {
             const dataStream = new Stream.PassThrough()
             const errorStream = new Stream.PassThrough()
 
+            let dataString = ''
+
             dataStream.on('data', async (chunk) => {
-                const dataString = chunk.toString()
+                dataString += chunk.toString()
+            })
+
+            dataStream.on('close', async () => {
+                dataString = dataString.replaceAll(/\s+/g, ' ').trim()
                 resolve(dataString)
             })
+
             errorStream.on('data', async (chunk) => {
                 const errorString = chunk.toString()
                 await log.error(`${Kubernetes.name}:${getContainerName(pod.container)}:${this.execute.name}:error-stream: ${errorString}`)

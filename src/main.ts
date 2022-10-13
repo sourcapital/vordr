@@ -19,6 +19,7 @@ import {Avalanche} from './chains/Avalanche.js'
 global.sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 global.log = new Log()
 global.betterUptime = new BetterUptime(config.betterUptime.apiKey)
+global.kubernetes = new Kubernetes()
 
 // Init nodes
 let nodes: Array<Node>
@@ -53,15 +54,23 @@ if (config.nodeENV === 'production') {
 await log.info('Initializing heartbeats ...')
 for (const node of nodes) await node.initHeartbeats()
 
-// Setup kubernetes monitoring and log streams
-const kubernetes = new Kubernetes()
-await kubernetes.setupLogStreams('thornode')
-await kubernetes.setupRestartMonitoring('thornode')
-await kubernetes.setupDiskUsageMonitoring('thornode')
+// Setup log aggregation and kubernetes monitoring
+await kubernetes.setupLogStreams()
+await kubernetes.setupRestartMonitoring('*/5 * * * *')
+await kubernetes.setupDiskUsageMonitoring('0 * * * *')
 
 // Run node health monitoring every minute
 new Cron('* * * * *', async () => {
     await Promise.all(_.flatten(_.map(nodes, (node) => {
         return [node.isUp(), node.isSynced(), node.isVersionUpToDate()]
     })))
+}).run()
+
+// Monitor slash points every minute
+new Cron('* * * * *', async () => {
+    const thornode = _.find(nodes, (node) => {
+        return node.constructor.name === Thornode.name
+    }) as Thornode
+
+    await Promise.all([thornode.monitorSlashPoints()])
 }).run()

@@ -47,6 +47,7 @@ declare type Incident = {
         url: string,
         cause: string,
         started_at: string,
+        resolved_at: string,
         call: boolean
         sms: boolean,
         email: boolean
@@ -62,7 +63,8 @@ export enum HeartbeatType {
 
 enum IncidentType {
     RESTARTS = 'Restarts',
-    DISK_USAGE = 'Disk Usage'
+    DISK_USAGE = 'Disk Usage',
+    SLASH_POINTS = 'Slash Points'
 }
 
 export class BetterUptime {
@@ -107,14 +109,8 @@ export class BetterUptime {
     }
 
     async createRestartIncident(name: string, restartCount: number) {
-        let incidents = await this.getAllIncidents()
-        incidents = _.filter(incidents, (incident) => {
-            return incident.attributes.name === `${name} ${IncidentType.RESTARTS}`
-        })
-        incidents = _.sortBy(incidents, (incident) => {
-            return incident.attributes.started_at
-        }).reverse()
-        const latestIncident = _.first(incidents)
+        const incidents = await this.getAllIncidents(`${name} ${IncidentType.RESTARTS}`)
+        const latestIncident = _.first(incidents.reverse())
         const previousRestarts = latestIncident ? Number(/\(total: ([0-9]+)\)/g.exec(latestIncident.attributes.cause)!.slice(1, 2)[0]) : 0
 
         if ((!latestIncident && restartCount !== 0) || restartCount > previousRestarts) {
@@ -125,20 +121,14 @@ export class BetterUptime {
         } else if (latestIncident && restartCount < previousRestarts) {
             // Delete related incidents if restartCount < previousRestarts which happens if a pod is updated to a new version
             for (const incident of incidents) {
-                await this.deleteIncidents(incident.id)
+                await this.deleteIncident(incident.id)
             }
         }
     }
 
     async createDiskUsageIncident(name: string, usedBytes: number, totalBytes: number, threshold: number) {
-        let incidents = await this.getAllIncidents()
-        incidents = _.filter(incidents, (incident) => {
-            return incident.attributes.name === `${name} ${IncidentType.DISK_USAGE}`
-        })
-        incidents = _.sortBy(incidents, (incident) => {
-            return incident.attributes.started_at
-        }).reverse()
-        const latestIncident = _.first(incidents)
+        let incidents = await this.getAllIncidents(`${name} ${IncidentType.DISK_USAGE}`)
+        const latestIncident = _.first(incidents.reverse())
         const diskUsage = usedBytes / totalBytes
 
         if (!latestIncident && diskUsage > threshold) {
@@ -147,9 +137,26 @@ export class BetterUptime {
                 `${name} pod has high disk usage: ${numeral(usedBytes).format('0.0b')} / ${numeral(totalBytes).format('0.0b')} (${numeral(diskUsage).format('0.00%')})`
             )
         } else if (latestIncident && diskUsage < threshold) {
-            // Delete related incidents if disk usage falls below threshold
+            // Resolve related incidents if disk usage falls below threshold
             for (const incident of incidents) {
-                await this.deleteIncidents(incident.id)
+                await this.resolveIncident(incident.id)
+            }
+        }
+    }
+
+    async createSlashPointIncident(name: string, slashPoints: number, threshold: number, min: number, max: number) {
+        let incidents = await this.getAllIncidents(`${name} ${IncidentType.SLASH_POINTS}`)
+        const latestIncident = _.first(incidents.reverse())
+
+        if (!latestIncident && slashPoints > threshold) {
+            await this.createIncident(
+                `${name} ${IncidentType.SLASH_POINTS}`,
+                `${name} has accumulated ${numeral(slashPoints).format('0,0')} slash points and is amongst the worst perfoming 10% of nodes: ${numeral(min).format('0,0')} (min), ${numeral(threshold).format('0,0')} (threshold), ${numeral(max).format('0,0')} (max)`
+            )
+        } else if (latestIncident && slashPoints < threshold) {
+            // Resolve related incidents if slash points falls below threshold
+            for (const incident of incidents) {
+                await this.resolveIncident(incident.id)
             }
         }
     }
@@ -179,16 +186,21 @@ export class BetterUptime {
     }
 
     async deleteAllIncidents() {
-        const incidents = await this.getAllIncidents()
+        const incidents = await this.getAllIncidents(undefined, false)
 
         for (const incident of incidents) {
-            await this.deleteIncidents(incident.id)
+            await this.deleteIncident(incident.id)
         }
     }
 
-    private async deleteIncidents(id: string) {
+    private async deleteIncident(id: string) {
         await log.debug(`${BetterUptime.name}: Deleting incident: ${id}`)
         await this.send('DELETE', `incidents/${id}`)
+    }
+
+    private async resolveIncident(id: string) {
+        await log.debug(`${BetterUptime.name}: Resolving incident: ${id}`)
+        await this.send('POST', `incidents/${id}/resolve`)
     }
 
     private async getHeartbeat(name: string, type: HeartbeatType): Promise<Heartbeat> {
@@ -262,13 +274,28 @@ export class BetterUptime {
         return response.data.data
     }
 
-    private async getAllIncidents(): Promise<Array<Incident>> {
+    private async getAllIncidents(title?: string, unresolvedOnly: boolean = true): Promise<Array<Incident>> {
         const response = await this.send('GET', 'incidents', {
             from: '1970-01-01',
             to: moment().format('YYYY-MM-DD')
         })
 
-        return response.data.data
+        let incidents = response.data.data
+        if (title) {
+            incidents = _.filter(incidents, (incident) => {
+                return incident.attributes.name === title
+            })
+        }
+        if (unresolvedOnly) {
+            incidents = _.filter(incidents, (incident) => {
+                return !incident.attributes.resolved_at
+            })
+        }
+        incidents = _.sortBy(incidents, (incident) => {
+            return incident.attributes.started_at
+        })
+
+        return incidents
     }
 
     private async send(method: string, endpoint: string, data?: object): Promise<AxiosResponse> {
@@ -286,7 +313,9 @@ export class BetterUptime {
                 })
 
                 let httpCode: number
-                if (method === 'POST') {
+                if (endpoint.match(/^incidents\/[0-9]+\/resolve/g)) {
+                    httpCode = 200
+                } else if (method === 'POST') {
                     httpCode = 201
                 } else if (method === 'DELETE') {
                     httpCode = 204
