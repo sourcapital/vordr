@@ -8,7 +8,7 @@ A monitoring application for THORNodes.
 
 - All chains are monitored for `Health`, `Sync Status` and `Version` every minute
 - Kubernetes pod restarts are monitored every 5 minutes
-- Kubernetes pod disk usage is monitored every 24 hours
+- Kubernetes pod disk usage is monitored every hour
 - Kubernetes pod logs of all chains are aggregated
 - Slash points are monitored every minute
 - Jailing is monitored every minute
