@@ -84,7 +84,7 @@ BetterUptime is used for alerting and incident management.
 - Kubernetes pod restarts create incidents
 - High disk usage of Kubernetes pods create incidents
 - High slash points create incidents
-- Jailing create incidents
+- Jailing creates incidents
 
 #### API Key
 
