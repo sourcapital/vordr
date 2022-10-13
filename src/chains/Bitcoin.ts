@@ -74,7 +74,6 @@ export class Bitcoin extends Node {
 
             const nodeBlockHeight = nodeResponse.data.result.blocks
             const nodeHeaderHeight = nodeResponse.data.result.headers
-            await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')} | nodeHeaderHeight = ${numeral(nodeHeaderHeight).format('0,0')}`)
 
             // Check if node is still syncing
             if (nodeBlockHeight < nodeHeaderHeight) {
@@ -83,7 +82,7 @@ export class Bitcoin extends Node {
             }
 
             const apiBlockHeight = apiResponse.data.data.best_block_height
-            await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
+            await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')} | apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
             // Check if node is behind the api consensus block height (1 block behind is ok due to network latency)
             if (nodeBlockHeight < apiBlockHeight - 1) {

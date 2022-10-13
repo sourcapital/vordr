@@ -94,7 +94,6 @@ export class Cosmos extends Node {
             }
 
             const nodeBlockHeight = Number(nodeResponse.data.result.sync_info.latest_block_height)
-            await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')}`)
 
             let apiBlockHeight: number
             switch (this.chain) {
@@ -108,7 +107,7 @@ export class Cosmos extends Node {
                     apiBlockHeight = Number(apiResponse.data.result.sync_info.latest_block_height)
                     break
             }
-            await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
+            await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')} | apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
             // Check if node is behind the api block height (1 block behind is ok due to network latency)
             if (nodeBlockHeight < apiBlockHeight - 1) {
