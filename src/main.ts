@@ -66,20 +66,11 @@ new Cron('* * * * *', async () => {
     })))
 }).run()
 
-// Monitor slash points and jailing every minute
+// Monitor slash points, jailing and version every minute
 new Cron('* * * * *', async () => {
     const thornode = _.find(nodes, (node) => {
         return node.constructor.name === Thornode.name
     }) as Thornode
 
-    await Promise.all([thornode.monitorSlashPoints(), thornode.monitorJailing()])
-}).run()
-
-// Monitor THORChain version every hour
-new Cron('0 * * * *', async () => {
-    const thornode = _.find(nodes, (node) => {
-        return node.constructor.name === Thornode.name
-    }) as Thornode
-
-    await Promise.all([thornode.monitorVersion()])
+    await Promise.all([thornode.monitorSlashPoints(), thornode.monitorJailing(), thornode.monitorVersion()])
 }).run()

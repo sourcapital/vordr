@@ -130,12 +130,21 @@ export class Kubernetes {
         const prefix = `${Kubernetes.name}:${getContainerName(pod.container)}:Logs`
 
         logStream.on('data', async (chunk) => {
-            const message = chunk.toString()
+            let message = chunk.toString()
                 .replaceAll(/\s+/g, ' ')
                 .replaceAll('\n', '')
                 .trim()
 
             const logLevel = await this.parseLogLevel(message)
+
+            try {
+                // Check if message is a json
+                JSON.parse(message)
+                // Stringify the message
+                message = JSON.stringify(message)
+            } catch {
+                // Message is not a json, do nothing
+            }
 
             switch (logLevel) {
                 case 'debug':
