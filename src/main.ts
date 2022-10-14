@@ -56,21 +56,30 @@ for (const node of nodes) await node.initHeartbeats()
 
 // Setup log aggregation and kubernetes monitoring
 await kubernetes.setupLogStreams()
-await kubernetes.setupRestartMonitoring('*/5 * * * *')
-await kubernetes.setupDiskUsageMonitoring('0 * * * *')
+await kubernetes.setupRestartMonitoring('*/5 * * * *') // every 5 minutes
+await kubernetes.setupDiskUsageMonitoring('0 * * * *') // every hour
 
 // Run node health monitoring every minute
 new Cron('* * * * *', async () => {
     await Promise.all(_.flatten(_.map(nodes, (node) => {
-        return [node.isUp(), node.isSynced(), node.isVersionUpToDate()]
+        return [node.isUp(), node.isSynced()]
     })))
 }).run()
 
-// Monitor slash points every minute
+// Monitor slash points and jailing every minute
 new Cron('* * * * *', async () => {
     const thornode = _.find(nodes, (node) => {
         return node.constructor.name === Thornode.name
     }) as Thornode
 
     await Promise.all([thornode.monitorSlashPoints(), thornode.monitorJailing()])
+}).run()
+
+// Monitor THORChain version every hour
+new Cron('0 * * * *', async () => {
+    const thornode = _.find(nodes, (node) => {
+        return node.constructor.name === Thornode.name
+    }) as Thornode
+
+    await Promise.all([thornode.monitorVersion()])
 }).run()

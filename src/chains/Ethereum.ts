@@ -24,8 +24,7 @@ export class Ethereum extends Node {
     async initHeartbeats() {
         await betterUptime.initHeartbeats(getChainName(this.chain), [
             HeartbeatType.HEALTH,
-            HeartbeatType.SYNC_STATUS,
-            HeartbeatType.VERSION
+            HeartbeatType.SYNC_STATUS
         ])
     }
 
@@ -118,36 +117,6 @@ export class Ethereum extends Node {
 
         await log.info(`${getChainName(this.chain)}: Node is synced!`)
         await betterUptime.sendHeartbeat(getChainName(this.chain), HeartbeatType.SYNC_STATUS)
-
-        return true
-    }
-
-    async isVersionUpToDate(): Promise<boolean> {
-        await log.debug(`${getChainName(this.chain)}: Checking if node version is up-to-date ...`)
-
-        try {
-            const nodeResponse = await this.query('web3_clientVersion')
-
-            if (nodeResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}:web3_clientVersion: Node HTTP status code: ${nodeResponse.status}`)
-                return false
-            }
-
-            const nodeVersion = nodeResponse.data.result
-            await log.debug(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: nodeVersion = '${nodeVersion}'`)
-        } catch (error: any) {
-            // Check if the node does not allow to query the method
-            if (error?.response?.status === 403) {
-                await log.warn(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: Node does not allow to query 'web3_clientVersion'!`)
-            } else {
-                await handleError(error)
-            }
-
-            return false
-        }
-
-        await log.info(`${getChainName(this.chain)}: Node version is up-to-date!`)
-        await betterUptime.sendHeartbeat(getChainName(this.chain), HeartbeatType.VERSION)
 
         return true
     }

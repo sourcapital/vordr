@@ -6,12 +6,13 @@ A monitoring application for THORNodes.
 
 ## Features
 
-- All chains are monitored for `Health`, `Sync Status` and `Version` every minute
+- All chains are monitored for `Health` and `Sync Status` every minute
 - Kubernetes pod restarts are monitored every 5 minutes
 - Kubernetes pod disk usage is monitored every hour
 - Kubernetes pod logs of all chains are aggregated
 - Slash points are monitored every minute
 - Jailing is monitored every minute
+- THORChain version is monitored every hour
 
 ## Supported Chains
 
@@ -79,12 +80,13 @@ kubectl delete -f k8s-deployment.yaml
 
 BetterUptime is used for alerting and incident management.
 
-- Heartbeats are sent every minute for `Health`, `Sync Status` and `Version` of the nodes
+- Heartbeats are sent every minute for `Health` and `Sync Status` of the nodes
 - Missed heartbeats create incidents
 - Kubernetes pod restarts create incidents
 - High disk usage of Kubernetes pods create incidents
 - High slash points create incidents
 - Jailing creates incidents
+- Outdated THORChain version creates incidents
 
 #### API Key
 

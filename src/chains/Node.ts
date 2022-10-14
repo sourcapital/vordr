@@ -23,9 +23,4 @@ export abstract class Node {
      * Check if the node is synced to the latest block height.
      */
     abstract isSynced(): Promise<boolean>
-
-    /**
-     * Check if the node's version is up-to-date.
-     */
-    abstract isVersionUpToDate(): Promise<boolean>
 }

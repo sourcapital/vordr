@@ -50,7 +50,7 @@ export class Thornode extends Cosmos {
         return await super.isUp()
     }
 
-    async isVersionUpToDate(): Promise<boolean> {
+    async monitorVersion() {
         await log.info(`${Thornode.name}: Checking if node version is up-to-date ...`)
 
         try {
@@ -60,16 +60,16 @@ export class Thornode extends Cosmos {
             ])
 
             if (nodeResponseVersion.status !== 200) {
-                await log.error(`${Thornode.name}:${this.isVersionUpToDate.name}:version: Node HTTP status code: ${nodeResponseVersion.status}`)
-                return false
+                await log.error(`${Thornode.name}:${this.monitorVersion.name}:version: Node HTTP status code: ${nodeResponseVersion.status}`)
+                return
             }
             if (nodeResponseNodes.status !== 200) {
-                await log.error(`${Thornode.name}:${this.isVersionUpToDate.name}:nodes: Node HTTP status code: ${nodeResponseNodes.status}`)
-                return false
+                await log.error(`${Thornode.name}:${this.monitorVersion.name}:nodes: Node HTTP status code: ${nodeResponseNodes.status}`)
+                return
             }
 
             const nodeVersion = nodeResponseVersion.data.current
-            await log.debug(`${Thornode.name}:${this.isVersionUpToDate.name}: nodeVersion = ${nodeVersion}`)
+            await log.debug(`${Thornode.name}:${this.monitorVersion.name}: nodeVersion = ${nodeVersion}`)
 
             const activeNodes = _.filter(nodeResponseNodes.data, (node) => {
                 return node.status.toLowerCase() === 'active'
@@ -80,25 +80,23 @@ export class Thornode extends Cosmos {
             const topVersion = _.max(versions, (version) => {
                 return Number(version.replace(/\./g, ''))
             })
-            await log.debug(`${Thornode.name}:${this.isVersionUpToDate.name}: topVersion = ${topVersion}`)
+            await log.debug(`${Thornode.name}:${this.monitorVersion.name}: topVersion = ${topVersion}`)
 
             // Parse version as numbers so they can be compared
             const nodeVersionAsNumber = Number(/([0-9]+)\.([0-9]+)\.([0-9]+)/g.exec(nodeVersion)!.slice(1, 4).join(''))
             const topVersionAsNumber = Number(/([0-9]+)\.([0-9]+)\.([0-9]+)/g.exec(topVersion)!.slice(1, 4).join(''))
 
             if (nodeVersionAsNumber < topVersionAsNumber) {
-                await log.warn(`${Thornode.name}:${this.isVersionUpToDate.name}: nodeVersion < topVersion: '${nodeVersion}' < '${topVersion}'`)
-                return false
+                await log.warn(`${Thornode.name}:${this.monitorVersion.name}: nodeVersion < topVersion: '${nodeVersion}' < '${topVersion}'`)
+                return
             }
         } catch (error) {
             await handleError(error)
-            return false
+            return
         }
 
         await log.info(`${Thornode.name}: Node version is up-to-date!`)
         await betterUptime.sendHeartbeat(Thornode.name, HeartbeatType.VERSION)
-
-        return await super.isVersionUpToDate()
     }
 
     async monitorSlashPoints() {

@@ -1,5 +1,4 @@
 import axios, {AxiosResponse} from 'axios'
-import _ from 'underscore'
 import numeral from 'numeral'
 import {Node} from './Node.js'
 import {handleError} from '../helpers/Error.js'
@@ -26,8 +25,7 @@ export class Cosmos extends Node {
     async initHeartbeats() {
         await betterUptime.initHeartbeats(getChainName(this.chain), [
             HeartbeatType.HEALTH,
-            HeartbeatType.SYNC_STATUS,
-            HeartbeatType.VERSION
+            HeartbeatType.SYNC_STATUS
         ])
     }
 
@@ -121,56 +119,6 @@ export class Cosmos extends Node {
 
         await log.info(`${getChainName(this.chain)}: Node is synced!`)
         await betterUptime.sendHeartbeat(getChainName(this.chain), HeartbeatType.SYNC_STATUS)
-
-        return true
-    }
-
-    async isVersionUpToDate(): Promise<boolean> {
-        await log.debug(`${getChainName(this.chain)}: Checking if node version is up-to-date ...`)
-
-        try {
-            const [nodeResponseStatus, nodeResponseNetInfo] = await Promise.all([
-                axios.get(`${this.url}/status`),
-                axios.get(`${this.url}/net_info`)
-            ])
-
-            if (nodeResponseStatus.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}:status: Node HTTP status code: ${nodeResponseStatus.status}`)
-                return false
-            }
-            if (nodeResponseNetInfo.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}:net_info: Node HTTP status code: ${nodeResponseNetInfo.status}`)
-                return false
-            }
-
-            const nodeVersion = nodeResponseStatus.data.result.node_info.version
-            await log.debug(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: nodeVersion = '${nodeVersion}'`)
-
-            const nodePeers = nodeResponseNetInfo.data.result.peers
-            const nodePeerVersions = _.map(nodePeers, (peer) => {
-                return peer.node_info.version
-            })
-            const nodePeerVersionCounts = _.countBy(nodePeerVersions, (version) => { return version })
-            const topVersion = _.first(Object.keys(nodePeerVersionCounts).sort((a, b) => {
-                return nodePeerVersionCounts[b] - nodePeerVersionCounts[a]
-            }))!
-            await log.debug(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: topVersion = '${topVersion}'`)
-
-            // Parse version as numbers so they can be compared
-            const nodeVersionAsNumber = Number(/([0-9]+)\.([0-9]+)\.([0-9]+)/g.exec(nodeVersion)!.slice(1,4).join(''))
-            const topVersionAsNumber = Number(/([0-9]+)\.([0-9]+)\.([0-9]+)/g.exec(topVersion)!.slice(1,4).join(''))
-
-            if (nodeVersionAsNumber < topVersionAsNumber) {
-                await log.warn(`${getChainName(this.chain)}:${this.isVersionUpToDate.name}: nodeVersion !== topVersion: '${nodeVersion}' !== '${topVersion}'`)
-                return false
-            }
-        } catch (error) {
-            await handleError(error)
-            return false
-        }
-
-        await log.info(`${getChainName(this.chain)}: Node version is up-to-date!`)
-        await betterUptime.sendHeartbeat(getChainName(this.chain), HeartbeatType.VERSION)
 
         return true
     }
