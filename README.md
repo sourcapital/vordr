@@ -106,7 +106,7 @@ If `LOGTAIL_SOURCE_TOKEN` is set in the environment variables:
 
 #### Source Token
 
-Sign up at [logtail.com](https://logtail.com), go to `Sources`, add a new `Source` with `JavaScript` as the platform and get the `Source` token.
+Sign up at [logtail.com](https://logtail.com), go to `Sources`, add a new `Source` with `JavaScript` as the platform and get the `Source Token`.
 
 <img width="1560" alt="image" src="https://user-images.githubusercontent.com/6087393/195772008-9f6e8708-6ead-4b92-92ff-5a0db7b89384.png">
 
