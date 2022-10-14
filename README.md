@@ -108,7 +108,7 @@ Forwarded logs can be queried and analyzed within the built-in Grafana in Logtai
 
 Sign up at [logtail.com](https://logtail.com), go to `Sources`, add a new `Source` with `JavaScript` as the platform and get the `Source` token.
 
-<img width="1560" alt="image" src="https://user-images.githubusercontent.com/6087393/195767605-d4a471cb-e5b8-40ac-8813-003d2feae5ee.png">
+<img width="1560" alt="image" src="https://user-images.githubusercontent.com/6087393/195772008-9f6e8708-6ead-4b92-92ff-5a0db7b89384.png">
 
 ## License
 
