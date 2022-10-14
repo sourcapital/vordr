@@ -96,19 +96,25 @@ Sign up at [betteruptime.com](https://betteruptime.com/?ref=8l7f) and follow the
 
 ## Logging (optional)
 
+### Logtail
+
 Logtail can be optionally used for log manangement.
 
 If `LOGTAIL_SOURCE_TOKEN` is set in the environment variables:
 - Vǫrðr forwards its own logs to Logtail
-- Vǫrðr forwards the logs of all chains to Logtail
-
-Forwarded logs can be queried and analyzed within the built-in Grafana in Logtail. Read more [here](https://docs.logtail.com/how-to/querying-data-in-logtail#grafana).
+- Vǫrðr aggregates and forwards the logs of all chains to Logtail
 
 #### Source Token
 
 Sign up at [logtail.com](https://logtail.com), go to `Sources`, add a new `Source` with `JavaScript` as the platform and get the `Source` token.
 
 <img width="1560" alt="image" src="https://user-images.githubusercontent.com/6087393/195772008-9f6e8708-6ead-4b92-92ff-5a0db7b89384.png">
+
+#### Grafana
+
+Forwarded logs can be queried and analyzed within the built-in Grafana in Logtail. Read more [here](https://docs.logtail.com/how-to/querying-data-in-logtail#grafana).
+
+<img width="1516" alt="image" src="https://user-images.githubusercontent.com/6087393/195779749-3e197654-32e5-4481-96dd-339ed6bea66d.png">
 
 ## License
 
