@@ -1,4 +1,4 @@
-import axios, {AxiosResponse} from 'axios'
+import axios from 'axios'
 import numeral from 'numeral'
 import {Node} from './Node.js'
 import {handleError} from '../helpers/Error.js'
@@ -54,23 +54,23 @@ export class Cosmos extends Node {
         await log.debug(`${getChainName(this.chain)}: Checking if the node is synced ...`)
 
         try {
-            let apiRequest: Promise<AxiosResponse>
+            let apiUrl: string
             switch (this.chain) {
                 case Chain.Cosmos:
-                    apiRequest = axios.get('https://api.cosmos.network/blocks/latest')
+                    apiUrl = 'https://gaia.ninerealms.com/status'
                     break
                 case Chain.Binance:
-                    apiRequest = axios.get('https://dex.binance.org/api/v1/node-info')
+                    apiUrl = 'https://binance.ninerealms.com/status'
                     break
                 case Chain.Thorchain:
-                    apiRequest = axios.get('https://rpc.ninerealms.com/status')
+                    apiUrl = 'https://rpc.ninerealms.com/status'
                     break
             }
 
             // Await all time critical request together to minimize any delay (e.g. difference in block height)
             const [nodeResponse, apiResponse] = await Promise.all([
                 axios.get(`${this.url}/status`),
-                apiRequest
+                axios.get(apiUrl)
             ])
 
             if (nodeResponse.status !== 200) {
@@ -92,19 +92,7 @@ export class Cosmos extends Node {
             }
 
             const nodeBlockHeight = Number(nodeResponse.data.result.sync_info.latest_block_height)
-
-            let apiBlockHeight: number
-            switch (this.chain) {
-                case Chain.Cosmos:
-                    apiBlockHeight = apiResponse.data.block.header.height
-                    break
-                case Chain.Binance:
-                    apiBlockHeight = apiResponse.data.sync_info.latest_block_height
-                    break
-                case Chain.Thorchain:
-                    apiBlockHeight = Number(apiResponse.data.result.sync_info.latest_block_height)
-                    break
-            }
+            const apiBlockHeight = Number(apiResponse.data.result.sync_info.latest_block_height)
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')} | apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
             // Check if node is behind the api block height (1 block behind is ok due to network latency)

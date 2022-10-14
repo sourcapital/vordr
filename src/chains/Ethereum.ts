@@ -53,13 +53,13 @@ export class Ethereum extends Node {
         await log.debug(`${getChainName(this.chain)}: Checking if the node is synced ...`)
 
         try {
-            let apiRequest: Promise<AxiosResponse>
+            let apiUrl: string
             switch (this.chain) {
                 case Chain.Ethereum:
-                    apiRequest = axios.get('https://api.blockchair.com/ethereum/stats')
+                    apiUrl = 'https://ethereum.ninerealms.com'
                     break
                 case Chain.Avalanche:
-                    apiRequest = this.query('eth_blockNumber', 'https://api.avax.network/ext/bc/C/rpc')
+                    apiUrl = 'https://avalanche.ninerealms.com/ext/bc/C/rpc'
                     break
             }
 
@@ -67,7 +67,7 @@ export class Ethereum extends Node {
             const [nodeResponseSync, nodeResponseBlockNumber, apiResponse] = await Promise.all([
                 this.query('eth_syncing'),
                 this.query('eth_blockNumber'),
-                apiRequest
+                this.query('eth_blockNumber', apiUrl)
             ])
 
             if (nodeResponseSync.status !== 200) {
@@ -93,16 +93,7 @@ export class Ethereum extends Node {
             }
 
             const nodeBlockHeight = Number(nodeResponseBlockNumber.data.result)
-
-            let apiBlockHeight: number
-            switch (this.chain) {
-                case Chain.Ethereum:
-                    apiBlockHeight = apiResponse.data.data.best_block_height
-                    break
-                case Chain.Avalanche:
-                    apiBlockHeight = Number(apiResponse.data.result)
-                    break
-            }
+            const apiBlockHeight = Number(apiResponse.data.result)
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')} | apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
             // Check if node is behind the api block height (1 block behind is ok due to network latency)

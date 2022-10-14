@@ -58,7 +58,7 @@ export class Bitcoin extends Node {
             // Await all time critical request together to minimize any delay (e.g. difference in block height)
             const [nodeResponse, apiResponse] = await Promise.all([
                 this.query('getblockchaininfo'),
-                axios.get(`https://api.blockchair.com/${this.chain}/stats`)
+                this.query('getblockchaininfo', `https://thorchain:password@${this.chain}.ninerealms.com`),
             ])
 
             if (nodeResponse.status !== 200) {
@@ -79,7 +79,7 @@ export class Bitcoin extends Node {
                 return false
             }
 
-            const apiBlockHeight = apiResponse.data.data.best_block_height
+            const apiBlockHeight = apiResponse.data.result.blocks
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')} | apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
             // Check if node is behind the api consensus block height (1 block behind is ok due to network latency)
@@ -98,8 +98,8 @@ export class Bitcoin extends Node {
         return true
     }
 
-    private query(method: string, params?: []): Promise<AxiosResponse> {
-        let url = this.url
+    private query(method: string, url?: string, params?: []): Promise<AxiosResponse> {
+        url = url ?? this.url
         let config = undefined
 
         // Check if the url contains username and password for authentication
