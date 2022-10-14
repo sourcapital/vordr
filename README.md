@@ -92,7 +92,7 @@ BetterUptime is used for alerting and incident management.
 
 Sign up at [betteruptime.com](https://betteruptime.com/?ref=8l7f) and follow the [docs](https://docs.betteruptime.com/api/getting-started#obtaining-an-api-token) to get the API key.
 
-<img width="1560" alt="image" src="https://user-images.githubusercontent.com/6087393/194463319-da42d277-4c14-49f3-ab86-aaa9cdee412d.png">
+<img width="1560" alt="image" src="https://user-images.githubusercontent.com/6087393/195767124-69095786-69e3-4927-a9ba-5dab0d6958f1.png">
 
 ## Logging (optional)
 
@@ -108,7 +108,7 @@ Forwarded logs can be queried and analyzed within the built-in Grafana in Logtai
 
 Sign up at [logtail.com](https://logtail.com), go to `Sources`, add a new `Source` with `JavaScript` as the platform and get the `Source` token.
 
-<img width="1516" alt="image" src="https://user-images.githubusercontent.com/6087393/194464966-6d5a1d70-aa4e-4cc6-8bcc-a17549398cc3.png">
+<img width="1560" alt="image" src="https://user-images.githubusercontent.com/6087393/195767605-d4a471cb-e5b8-40ac-8813-003d2feae5ee.png">
 
 ## License
 
