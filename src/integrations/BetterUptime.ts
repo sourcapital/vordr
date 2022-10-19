@@ -112,49 +112,52 @@ export class BetterUptime {
     async createRestartIncident(name: string, restartCount: number) {
         const incidents = await this.getAllIncidents(`${name} ${IncidentType.RESTARTS}`, false)
         const latestIncident = _.first(incidents.reverse())
-        const previousRestarts = latestIncident ? Number(/\(total: ([0-9]+)\)/g.exec(latestIncident.attributes.cause)!.slice(1, 2)[0]) : 0
+        const previousRestarts = latestIncident ? Number(/total: ([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
 
-        if (!latestIncident && restartCount > previousRestarts) {
+        if (restartCount > previousRestarts) {
             await this.createIncident(
                 `${name} ${IncidentType.RESTARTS}`,
-                `${name} pod restarted! (total: ${restartCount})`
+                `${name} pod restarted! (total: ${numeral(restartCount).format('0')})`
             )
         }
     }
 
     async createDiskUsageIncident(name: string, usedBytes: number, totalBytes: number, threshold: number) {
-        let incidents = await this.getAllIncidents(`${name} ${IncidentType.DISK_USAGE}`, false)
+        const incidents = await this.getAllIncidents(`${name} ${IncidentType.DISK_USAGE}`, false)
         const latestIncident = _.first(incidents.reverse())
+        const previousDiskUsage = latestIncident ? Number(/\(([0-9]+)%\)/g.exec(latestIncident.attributes.cause)![1]) / 100 : 0
         const diskUsage = usedBytes / totalBytes
 
-        if (!latestIncident && diskUsage > threshold) {
+        if (diskUsage > threshold && diskUsage > 1.05 * previousDiskUsage) {
             await this.createIncident(
                 `${name} ${IncidentType.DISK_USAGE}`,
-                `${name} pod has high disk usage: ${numeral(usedBytes).format('0.0b')} / ${numeral(totalBytes).format('0.0b')} (${numeral(diskUsage).format('0.00%')})`
+                `${name} pod has high disk usage: ${numeral(usedBytes).format('0.0b')} / ${numeral(totalBytes).format('0.0b')} (${numeral(diskUsage).format('0%')})`
             )
         }
     }
 
-    async createSlashPointIncident(name: string, slashPoints: number, threshold: number, min: number, max: number) {
-        let incidents = await this.getAllIncidents(`${name} ${IncidentType.SLASH_POINTS}`, false)
+    async createSlashPointIncident(name: string, slashPoints: number, threshold: number) {
+        const incidents = await this.getAllIncidents(`${name} ${IncidentType.SLASH_POINTS}`, false)
         const latestIncident = _.first(incidents.reverse())
+        const previousSlashPoints = latestIncident ? Number(/([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
 
-        if (!latestIncident && slashPoints > threshold) {
+        if (slashPoints > threshold && slashPoints > 1.5 * previousSlashPoints) {
             await this.createIncident(
                 `${name} ${IncidentType.SLASH_POINTS}`,
-                `${name} has accumulated ${numeral(slashPoints).format('0,0')} slash points and is amongst the worst perfoming 10% of nodes: ${numeral(min).format('0,0')} (min), ${numeral(threshold).format('0,0')} (threshold), ${numeral(max).format('0,0')} (max)`
+                `${name} has accumulated ${numeral(slashPoints).format('0')} slash points!`
             )
         }
     }
 
-    async createJailIncident(name: string, reason: string, releaseHeight: number, currentBlockHeight: number) {
-        let incidents = await this.getAllIncidents(`${name} ${IncidentType.JAIL}`, false)
+    async createJailIncident(name: string, reason: string, releaseHeight: number) {
+        const incidents = await this.getAllIncidents(`${name} ${IncidentType.JAIL}`, false)
         const latestIncident = _.first(incidents.reverse())
+        const previousReleaseHeight = latestIncident ? Number(/releaseHeight = ([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
 
-        if (!latestIncident && releaseHeight > currentBlockHeight) {
+        if (releaseHeight > previousReleaseHeight) {
             await this.createIncident(
                 `${name} ${IncidentType.JAIL}`,
-                `${name} has been jailed! (releaseHeight = ${numeral(releaseHeight).format('0,0')}, reason = '${reason}')`
+                `${name} has been jailed! (releaseHeight = ${numeral(releaseHeight).format('0')}, reason = '${reason}')`
             )
         }
     }

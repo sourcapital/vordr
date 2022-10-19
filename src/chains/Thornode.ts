@@ -99,6 +99,26 @@ export class Thornode extends Cosmos {
         await betterUptime.sendHeartbeat(Thornode.name, HeartbeatType.VERSION)
     }
 
+    async monitorBond() {
+        try {
+            // Get the thornode's address from the Kubernetes pod
+            const nodeAddress = await kubernetes.getThornodeAddress()
+            const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/node/${nodeAddress}`)
+
+            if (nodeResponse.status !== 200) {
+                await log.error(`${Thornode.name}:${this.monitorBond.name}: Node HTTP status code: ${nodeResponse.status}`)
+                return
+            }
+
+            const bond = Number(nodeResponse.data.bond) / 1e8
+            const reward = Number(nodeResponse.data.current_award) / 1e8
+
+            await log.info(`${Thornode.name}:Bond: bond = ${numeral(bond).format('0,0')} | reward = ${numeral(reward).format('0,0')}`)
+        } catch (error) {
+            await handleError(error)
+        }
+    }
+
     async monitorSlashPoints() {
         try {
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
@@ -147,7 +167,7 @@ export class Thornode extends Cosmos {
 
             // Alert if slash points are above threshold
             if (node.slashPoints > threshold) {
-                await betterUptime.createSlashPointIncident(Thornode.name, node.slashPoints, threshold, min, max)
+                await betterUptime.createSlashPointIncident(Thornode.name, node.slashPoints, threshold)
             } else {
                 await betterUptime.resolveIncidents(Thornode.name, IncidentType.SLASH_POINTS)
             }
@@ -176,10 +196,10 @@ export class Thornode extends Cosmos {
                 return
             }
 
-            const node = thorRpcNodeResponse.data
-            const jail = node.jail
+            const status = thorRpcNodeResponse.data.status.toLowerCase()
+            const jail = thorRpcNodeResponse.data.jail
 
-            if (node.status.toLowerCase() !== 'active') {
+            if (status !== 'active') {
                 await log.info(`${Thornode.name}:${this.monitorJailing.name}: Node is not active. Skipping jail monitoring ...`)
                 return
             }
@@ -189,17 +209,15 @@ export class Thornode extends Cosmos {
             }
 
             const releaseHeight = jail.release_height
-            const currentBlockHeight = Number(cosmosRpcNodeResponse.data.result.sync_info.latest_block_height)
-
-            await log.info(`${Thornode.name}:Jail: releaseHeight = ${numeral(releaseHeight).format('0,0')} | currentBlockHeight = ${numeral(currentBlockHeight).format('0,0')}`)
+            const currentHeight = Number(cosmosRpcNodeResponse.data.result.sync_info.latest_block_height)
 
             // Alert if node is jailed
-            if (releaseHeight > currentBlockHeight) {
+            if (releaseHeight > currentHeight) {
                 const reason = jail.reason ?? 'unknown'
-                const diff = releaseHeight - currentBlockHeight
+                const diff = releaseHeight - currentHeight
                 await log.info(`${Thornode.name}:Jail: Node is jailed for ${numeral(diff).format('0,0')} more blocks! (releaseHeight = ${numeral(releaseHeight).format('0,0')}, reason = '${reason}')`)
 
-                await betterUptime.createJailIncident(Thornode.name, reason, jail.releaseHeight, currentBlockHeight)
+                await betterUptime.createJailIncident(Thornode.name, reason, releaseHeight)
             } else {
                 await betterUptime.resolveIncidents(Thornode.name, IncidentType.JAIL)
             }
