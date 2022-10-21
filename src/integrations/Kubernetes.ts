@@ -103,7 +103,7 @@ export class Kubernetes {
         if (pod.restarts > 0) {
             await betterUptime.createRestartIncident(getContainerName(pod.container), pod.restarts)
         } else {
-            await betterUptime.resolveIncidents(getContainerName(pod.container), IncidentType.RESTARTS)
+            await betterUptime.resolveIncidents(getContainerName(pod.container), IncidentType.RESTART)
         }
     }
 

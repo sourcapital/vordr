@@ -62,7 +62,7 @@ export enum HeartbeatType {
 }
 
 export enum IncidentType {
-    RESTARTS = 'Restarts',
+    RESTART = 'Restart',
     DISK_USAGE = 'Disk Usage',
     SLASH_POINTS = 'Slash Points',
     JAIL = 'Jail'
@@ -110,13 +110,13 @@ export class BetterUptime {
     }
 
     async createRestartIncident(name: string, restartCount: number) {
-        const incidents = await this.getAllIncidents(`${name} ${IncidentType.RESTARTS}`, false)
+        const incidents = await this.getAllIncidents(`${name} ${IncidentType.RESTART}`, false)
         const latestIncident = _.first(incidents.reverse())
         const previousRestarts = latestIncident ? Number(/total: ([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
 
         if (restartCount > previousRestarts) {
             await this.createIncident(
-                `${name} ${IncidentType.RESTARTS}`,
+                `${name} ${IncidentType.RESTART}`,
                 `${name} pod restarted! (total: ${numeral(restartCount).format('0')})`
             )
         }
