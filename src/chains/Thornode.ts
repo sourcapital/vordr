@@ -1,8 +1,8 @@
 import axios from 'axios'
 import _ from 'underscore'
 import numeral from 'numeral'
-import {handleError} from '../helpers/Error.js'
 import {Chain, Cosmos} from './Cosmos.js'
+import {handleError} from '../helpers/Error.js'
 import {HeartbeatType, IncidentType} from '../integrations/BetterUptime.js'
 
 export class Thornode extends Cosmos {
@@ -54,24 +54,22 @@ export class Thornode extends Cosmos {
         await log.info(`${Thornode.name}: Checking if node version is up-to-date ...`)
 
         try {
-            const [nodeResponseVersion, nodeResponseNodes] = await Promise.all([
-                axios.get(`${this.thorRpcUrl}/thorchain/version`),
-                axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
-            ])
+            const nodeAddress = await kubernetes.getThornodeAddress()
+            const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
 
-            if (nodeResponseVersion.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorVersion.name}:version: Node HTTP status code: ${nodeResponseVersion.status}`)
-                return
-            }
-            if (nodeResponseNodes.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorVersion.name}:nodes: Node HTTP status code: ${nodeResponseNodes.status}`)
+            if (nodeResponse.status !== 200) {
+                await log.error(`${Thornode.name}:${this.monitorVersion.name}: HTTP status code: ${nodeResponse.status}`)
                 return
             }
 
-            const nodeVersion = nodeResponseVersion.data.current
-            await log.debug(`${Thornode.name}:${this.monitorVersion.name}: nodeVersion = ${nodeVersion}`)
+            // Get the node's version
+            const nodes = nodeResponse.data
+            const nodeVersion = _.find(nodes, (node) => {
+                return node.node_address === nodeAddress
+            }).version
 
-            const activeNodes = _.filter(nodeResponseNodes.data, (node) => {
+            // Get the top version of the active nodes
+            const activeNodes = _.filter(nodes, (node) => {
                 return node.status.toLowerCase() === 'active'
             })
             const versions = _.map(activeNodes, (node) => {
@@ -101,7 +99,6 @@ export class Thornode extends Cosmos {
 
     async monitorBond() {
         try {
-            // Get the thornode's address from the Kubernetes pod
             const nodeAddress = await kubernetes.getThornodeAddress()
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/node/${nodeAddress}`)
 
@@ -178,7 +175,6 @@ export class Thornode extends Cosmos {
 
     async monitorJailing() {
         try {
-            // Get the thornode's address from the Kubernetes pod
             const nodeAddress = await kubernetes.getThornodeAddress()
 
             // Await all time critical request together to minimize any delay (e.g. difference in block height)
