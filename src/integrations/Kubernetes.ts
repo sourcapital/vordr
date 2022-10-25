@@ -3,9 +3,9 @@ import numeral from 'numeral'
 import * as Stream from 'stream'
 import k8s, {Exec, KubeConfig} from '@kubernetes/client-node'
 import {config} from '../config.js'
-import {handleError} from '../helpers/Error.js'
 import {Cron} from '../helpers/Cron.js'
 import {IncidentType} from './BetterUptime.js'
+import {handleError} from '../helpers/Error.js'
 
 declare type K8sPod = {
     name: string,

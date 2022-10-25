@@ -1,6 +1,6 @@
 import {Log} from './helpers/Log.js'
-import {BetterUptime} from './integrations/BetterUptime.js'
 import {Kubernetes} from './integrations/Kubernetes.js'
+import {BetterUptime} from './integrations/BetterUptime.js'
 
 declare global {
     var sleep: (ms: number) => Promise<unknown>

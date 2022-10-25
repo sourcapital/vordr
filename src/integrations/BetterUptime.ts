@@ -1,9 +1,9 @@
-import axios, {AxiosResponse} from 'axios'
 import _ from 'underscore'
-import {handleError} from '../helpers/Error.js'
-import {config} from '../config.js'
-import numeral from 'numeral'
 import moment from 'moment'
+import numeral from 'numeral'
+import axios, {AxiosResponse} from 'axios'
+import {config} from '../config.js'
+import {handleError} from '../helpers/Error.js'
 
 declare type Heartbeat = {
     id: string,
