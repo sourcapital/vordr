@@ -32,10 +32,10 @@
     "@logtail/tools" "^0.1.12"
     "@logtail/types" "^0.1.12"
 
-"@logtail/node@^0.1.12":
-  version "0.1.12"
-  resolved "https://registry.yarnpkg.com/@logtail/node/-/node-0.1.12.tgz#2d77cba14d8d8f4f0b93c47c4386a38990e30d2e"
-  integrity sha512-t6cPN5+cwrsFn38G0eLT/iNdUeFt4QiEJ7Xq3Wv5IluUL1Gmsr+aeVOHh12dZrFRNjf/qoBPf8KUIaIUI1EC9A==
+"@logtail/node@^0.1.14":
+  version "0.1.14"
+  resolved "https://registry.yarnpkg.com/@logtail/node/-/node-0.1.14.tgz#5df0130ad7975fa2520ba2b643416982683e49ca"
+  integrity sha512-vbK/LwX0Z9p7iRcbk0nW0mYoxAKp4V+9VSKBB3E77ap+FQgsnCz9fZYihMg/eiThGgHqb7wfGLaKQJ2REiQK7A==
   dependencies:
     "@logtail/core" "^0.1.12"
     "@logtail/types" "^0.1.12"
