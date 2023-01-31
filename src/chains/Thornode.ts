@@ -63,11 +63,19 @@ export class Thornode extends Cosmos {
                 return
             }
 
-            // Get the node's version
+            // Try to find the node
             const nodes = nodeResponse.data
-            const nodeVersion = _.find(nodes, (node) => {
+            const node = _.find(nodes, (node) => {
                 return node.node_address === nodeAddress
-            }).version
+            })
+
+            if (!node) {
+                await log.warn(`${Thornode.name}:${this.monitorVersion.name}: Node '${nodeAddress}' not found!`)
+                return
+            }
+
+            // Get the node's version
+            const nodeVersion = node.version
 
             // Get the top version of the active nodes
             const activeNodes = _.filter(nodes, (node) => {
