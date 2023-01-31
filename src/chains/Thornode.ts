@@ -1,6 +1,7 @@
 import axios from 'axios'
 import _ from 'underscore'
 import numeral from 'numeral'
+import {config} from '../config.js'
 import {Chain, Cosmos} from './Cosmos.js'
 import {handleError} from '../helpers/Error.js'
 import {HeartbeatType, IncidentType} from '../integrations/BetterUptime.js'
@@ -54,7 +55,7 @@ export class Thornode extends Cosmos {
         await log.info(`${Thornode.name}: Checking if node version is up-to-date ...`)
 
         try {
-            const nodeAddress = await kubernetes.getThornodeAddress()
+            const nodeAddress = this.getAddress()
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
 
             if (nodeResponse.status !== 200) {
@@ -99,7 +100,7 @@ export class Thornode extends Cosmos {
 
     async monitorBond() {
         try {
-            const nodeAddress = await kubernetes.getThornodeAddress()
+            const nodeAddress = this.getAddress()
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/node/${nodeAddress}`)
 
             if (nodeResponse.status !== 200) {
@@ -138,8 +139,8 @@ export class Thornode extends Cosmos {
                 return slashPoints.slashPoints
             }).reverse()
 
-            // Get the thornode's address from the Kubernetes pod
-            const nodeAddress = await kubernetes.getThornodeAddress()
+            // Get the thornode's address
+            const nodeAddress = this.getAddress()
 
             // Try to find the node in the active nodes
             const node = _.find(activeNodes, (node) => {
@@ -175,7 +176,7 @@ export class Thornode extends Cosmos {
 
     async monitorJailing() {
         try {
-            const nodeAddress = await kubernetes.getThornodeAddress()
+            const nodeAddress = this.getAddress()
 
             // Await all time critical request together to minimize any delay (e.g. difference in block height)
             const [thorRpcNodeResponse, cosmosRpcNodeResponse] = await Promise.all([
@@ -220,5 +221,9 @@ export class Thornode extends Cosmos {
         } catch (error) {
             await handleError(error)
         }
+    }
+
+    private getAddress(): string {
+        return config.thornodeAddress!
     }
 }

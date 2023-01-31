@@ -1,4 +1,5 @@
 export const config = {
+    thornodeAddress: process.env.THORNODE_ADDRESS,
     logtail: {
         sourceToken: process.env.LOGTAIL_SOURCE_TOKEN,
     },

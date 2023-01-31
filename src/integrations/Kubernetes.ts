@@ -1,7 +1,6 @@
 import _ from 'underscore'
-import numeral from 'numeral'
 import * as Stream from 'stream'
-import k8s, {Exec, KubeConfig} from '@kubernetes/client-node'
+import k8s, {KubeConfig} from '@kubernetes/client-node'
 import {config} from '../config.js'
 import {Cron} from '../helpers/Cron.js'
 import {IncidentType} from './BetterUptime.js'
@@ -59,17 +58,6 @@ export class Kubernetes {
         }).run()
     }
 
-    async setupDiskUsageMonitoring(schedule: string) {
-        await log.info(`${Kubernetes.name}: Setup pod disk usage monitoring ...`)
-
-        new Cron(schedule, async () => {
-            const pods = await this.getPods('thornode')
-            await Promise.all(_.map(pods, (pod) => {
-                return this.monitorDiskUsage(pod)
-            }))
-        }).run()
-    }
-
     async setupLogStreams() {
         await log.info(`${Kubernetes.name}: Setup log streams ...`)
 
@@ -83,19 +71,6 @@ export class Kubernetes {
         }
     }
 
-    async getThornodeAddress(): Promise<string> {
-        const pods = await this.getPods('thornode')
-        const pod = _.find(pods, (pod) => {
-            return pod.container === Container.Thornode
-        })!
-
-        return await kubernetes.execute(pod, [
-            '/bin/sh',
-            '-c',
-            'echo "$SIGNER_PASSWD" | thornode keys show "$SIGNER_NAME" -a --keyring-backend file'
-        ])
-    }
-
     private async monitorRestarts(pod: K8sPod) {
         await log.info(`${Kubernetes.name}:${getContainerName(pod.container)}:Pod:Restarts: ${pod.restarts}`)
 
@@ -104,24 +79,6 @@ export class Kubernetes {
             await betterUptime.createRestartIncident(getContainerName(pod.container), pod.restarts)
         } else {
             await betterUptime.resolveIncidents(getContainerName(pod.container), IncidentType.RESTART)
-        }
-    }
-
-    private async monitorDiskUsage(pod: K8sPod) {
-        // Calculate pod disk usage
-        const output = await this.execute(pod, ['/bin/sh', '-c', 'df -k'])
-        const regex = new RegExp(`([0-9]+) ([0-9]+) [0-9]+ [0-9]+% ${this.getContainerMountPath(pod.container)}`)
-        const matches = regex.exec(output)!
-        const totalBytes = Number(matches[1]) * 1024 // KiloBytes to bytes
-        const usedBytes = Number(matches[2]) * 1024 // KiloBytes to bytes
-        const diskUsage = usedBytes / totalBytes
-        await log.info(`${Kubernetes.name}:${getContainerName(pod.container)}:Pod:DiskUsage: ${numeral(usedBytes).format('0.0b')} / ${numeral(totalBytes).format('0.0b')} (${numeral(diskUsage).format('0.00%')})`)
-
-        // Alert if disk usage is above 85%
-        if (diskUsage > 0.85) {
-            await betterUptime.createDiskUsageIncident(getContainerName(pod.container), usedBytes, totalBytes, 0.85)
-        } else {
-            await betterUptime.resolveIncidents(getContainerName(pod.container), IncidentType.DISK_USAGE)
         }
     }
 
@@ -197,81 +154,6 @@ export class Kubernetes {
                 }) ?? 0
             }
         })
-    }
-
-    private async execute(pod: K8sPod, command: string | string[]): Promise<string> {
-        const exec = new Exec(this.k8sConfig)
-
-        return new Promise<string>(async (resolve, reject) => {
-            const dataStream = new Stream.PassThrough()
-            const errorStream = new Stream.PassThrough()
-
-            let dataString = ''
-
-            dataStream.on('data', async (chunk) => {
-                dataString += chunk.toString()
-            })
-
-            dataStream.on('close', async () => {
-                dataString = dataString.replaceAll(/\s+/g, ' ').trim()
-                resolve(dataString)
-            })
-
-            errorStream.on('data', async (chunk) => {
-                const errorString = chunk.toString()
-                await log.error(`${Kubernetes.name}:${getContainerName(pod.container)}:${this.execute.name}:error-stream: ${errorString}`)
-                reject(errorString)
-            })
-
-            await exec.exec(
-                pod.namespace,
-                pod.name,
-                pod.container,
-                command,
-                dataStream as Stream.Writable,
-                errorStream as Stream.Writable,
-                null,
-                false
-            )
-        })
-    }
-
-    private getContainerMountPath(container: Container): string {
-        let mountPath: string
-
-        switch (container) {
-            case Container.Bifrost:
-                mountPath = '/var/data/bifrost'
-                break
-            case Container.Gateway:
-                mountPath = '/etc/hosts'
-                break
-            case Container.Thornode:
-            case Container.Ethereum:
-                mountPath = '/root'
-                break
-            case Container.Binance:
-                mountPath = '/opt/bnbchaind'
-                break
-            case Container.Bitcoin:
-            case Container.BitcoinCash:
-                mountPath = '/home/bitcoin/.bitcoin'
-                break
-            case Container.Litecoin:
-                mountPath = '/home/litecoin/.litecoin'
-                break
-            case Container.Dogecoin:
-                mountPath = '/home/dogecoin/.dogecoin'
-                break
-            case Container.Cosmos:
-                mountPath = '/root/.gaia'
-                break
-            case Container.Avalanche:
-                mountPath = '/root/.avalanchego'
-                break
-        }
-
-        return mountPath
     }
 
     private async parseLogLevel(message: string): Promise<string> {

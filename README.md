@@ -9,7 +9,6 @@ A monitoring application for THORNodes.
 - All chains are monitored for `Health` and `Sync Status` every minute
 - THORChain version is monitored every minute
 - Kubernetes pod restarts are monitored every 5 minutes
-- Kubernetes pod disk usage is monitored every hour
 - Kubernetes pod logs of all chains are aggregated
 - Slash points are monitored every minute
 - Jailing is monitored every minute
@@ -44,9 +43,10 @@ yarn build
 
 | Key                  | Required | Description                                                            |
 |----------------------|----------|------------------------------------------------------------------------|
-| NODE_ENV             | No       | Set to `production`, if you want to run the application in production. |
+| THORNODE_ADDRESS     | Yes      | Set to the address of your THORNode (`thor...`).                       |
 | BETTERUPTIME_API_KEY | Yes      | BetterUptime's API Key, see [here](#betteruptime).                     |
 | LOGTAIL_SOURCE_TOKEN | No       | Logtail's Source Token, see [here](#logging-optional).                 |
+| NODE_ENV             | No       | Set to `production`, if you want to run the application in production. |
 
 ### Run
 
@@ -83,7 +83,6 @@ BetterUptime is used for alerting and incident management.
 - Heartbeats are sent every minute for `Health` and `Sync Status` of the nodes
 - Missed heartbeats create incidents
 - Kubernetes pod restarts create incidents
-- High disk usage of Kubernetes pods create incidents
 - High slash points create incidents
 - Jailing creates incidents
 - Outdated THORChain version creates incidents
@@ -121,7 +120,7 @@ Forwarded logs can be queried and analyzed within the built-in Grafana in Logtai
 ```
 MIT License
 
-Copyright (c) 2022 Sour Capital Pte. Ltd.
+Copyright (c) 2023 Sour Capital Pte. Ltd.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -55,9 +55,7 @@ await log.info('Initializing heartbeats ...')
 for (const node of nodes) await node.initHeartbeats()
 
 // Setup log aggregation and kubernetes monitoring
-await kubernetes.setupLogStreams()
 await kubernetes.setupRestartMonitoring('*/5 * * * *') // every 5 minutes
-await kubernetes.setupDiskUsageMonitoring('0 * * * *') // every hour
 
 // Run node health monitoring every minute
 new Cron('* * * * *', async () => {

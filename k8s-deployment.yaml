@@ -13,14 +13,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   namespace: thornode
-  name: pod-logs-exec
+  name: get-pods
 rules:
   - apiGroups: [ '' ]
     resources: [ 'pods', 'pods/log' ]
     verbs: [ 'get', 'list' ]
-  - apiGroups: [ '' ]
-    resources: [ 'pods/exec' ]
-    verbs: [ 'get', 'create' ]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -33,7 +30,7 @@ subjects:
     namespace: vordr
 roleRef:
   kind: Role
-  name: pod-logs-exec
+  name: get-pods
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: apps/v1
@@ -61,6 +58,8 @@ spec:
           env:
             - name: NODE_ENV
               value: 'production'
+            - name: THORNODE_ADDRESS
+              value: '{THORNODE_ADDRESS}'
             - name: BETTERUPTIME_API_KEY
               value: '{BETTERUPTIME_API_KEY}'
             - name: LOGTAIL_SOURCE_TOKEN
