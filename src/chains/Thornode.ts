@@ -70,7 +70,7 @@ export class Thornode extends Cosmos {
             })
 
             if (!node) {
-                await log.warn(`${Thornode.name}:${this.monitorVersion.name}: Node '${nodeAddress}' not found!`)
+                await log.info(`${Thornode.name}:${this.monitorVersion.name}: Node '${nodeAddress}' not bonded!`)
                 return
             }
 
