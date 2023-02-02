@@ -54,8 +54,9 @@ if (config.nodeENV === 'production') {
 await log.info('Initializing heartbeats ...')
 for (const node of nodes) await node.initHeartbeats()
 
-// Setup kubernetes monitoring to run every minute
-await kubernetes.setupRestartMonitoring('* * * * *')
+// Setup kubernetes log streams and pod monitoring
+await kubernetes.setupRestartMonitoring('* * * * *') // every minute
+await kubernetes.setupLogStreams()
 
 // Run node health monitoring every minute
 new Cron('* * * * *', async () => {
