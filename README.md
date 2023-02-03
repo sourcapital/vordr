@@ -21,6 +21,33 @@ A monitoring application for THORNodes.
 | Ethereum | Ethereum (ETH), Avalanche (AVAX)                                   |
 | Cosmos   | Cosmos (ATOM), Binance (BNB), THORChain (RUNE)                     |
 
+## Kubernetes
+
+### Environment Variables
+
+| Key                  | Required | Description                                                            |
+|----------------------|----------|------------------------------------------------------------------------|
+| THORNODE_ADDRESS     | Yes      | Set to the address of your THORNode (`thor...`).                       |
+| BETTERUPTIME_API_KEY | Yes      | BetterUptime's API Key, see [here](#betteruptime).                     |
+| LOGTAIL_SOURCE_TOKEN | No       | Logtail's Source Token, see [here](#logging-optional).                 |
+| NODE_ENV             | No       | Set to `production`, if you want to run the application in production. |
+
+### Deploy to cluster
+
+Set all environment variables in `k8s-deployment.yaml` and deploy the application:
+
+```
+kubectl create -f k8s-deployment.yaml
+```
+
+### Remove from cluster
+
+Remove the application from the Kubernetes cluster:
+
+```
+kubectl delete -f k8s-deployment.yaml
+```
+
 ## Local Environment
 
 ### Installation
@@ -39,39 +66,12 @@ Compile `.ts` to `.js`:
 yarn build
 ```
 
-### Environment Variables
-
-| Key                  | Required | Description                                                            |
-|----------------------|----------|------------------------------------------------------------------------|
-| THORNODE_ADDRESS     | Yes      | Set to the address of your THORNode (`thor...`).                       |
-| BETTERUPTIME_API_KEY | Yes      | BetterUptime's API Key, see [here](#betteruptime).                     |
-| LOGTAIL_SOURCE_TOKEN | No       | Logtail's Source Token, see [here](#logging-optional).                 |
-| NODE_ENV             | No       | Set to `production`, if you want to run the application in production. |
-
 ### Run
 
 Run via `node.js`:
 
 ```
 yarn start
-```
-
-## Kubernetes
-
-### Deploy to cluster
-
-Set all environment variables in `k8s-deployment.yaml` and deploy the application:
-
-```
-kubectl create -f k8s-deployment.yaml
-```
-
-### Remove from cluster
-
-Remove the application from the Kubernetes cluster:
-
-```
-kubectl delete -f k8s-deployment.yaml
 ```
 
 ## Alerting
