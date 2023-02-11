@@ -3,6 +3,7 @@ import {config} from './config.js'
 import {Log} from './helpers/Log.js'
 import {Cron} from './helpers/Cron.js'
 import {Kubernetes} from './integrations/Kubernetes.js'
+import {Loki} from './integrations/Loki.js'
 import {BetterUptime} from './integrations/BetterUptime.js'
 import {Node} from './chains/Node.js'
 import {Thornode} from './chains/Thornode.js'
@@ -54,9 +55,12 @@ if (config.nodeENV === 'production') {
 await log.info('Initializing heartbeats ...')
 for (const node of nodes) await node.initHeartbeats()
 
-// Setup kubernetes log streams and pod monitoring
+// Setup kubernetes pod monitoring
 await kubernetes.setupRestartMonitoring('* * * * *') // every minute
-await kubernetes.setupLogStreams()
+
+// Setup Loki log stream
+await log.info('Initializing Loki stream ...')
+await new Loki().connect()
 
 // Run node health monitoring every minute
 new Cron('* * * * *', async () => {
