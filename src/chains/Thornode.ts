@@ -116,7 +116,7 @@ export class Thornode extends Cosmos {
                 return
             }
 
-            const bond = Number(nodeResponse.data.bond) / 1e8
+            const bond = Number(nodeResponse.data.total_bond) / 1e8
             const reward = Number(nodeResponse.data.current_award) / 1e8
 
             await log.info(`${Thornode.name}:Bond: bond = ${numeral(bond).format('0,0')} | reward = ${numeral(reward).format('0,0')}`)
