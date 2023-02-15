@@ -42,17 +42,7 @@ export class Loki {
             try {
                 const streams: Array<any> = JSON.parse(data.toString()).streams
                 for (const stream of streams) {
-                    await log.debug(JSON.stringify(stream))
-
-                    const prefix = `${Loki.name}:${stream.stream.app}`
-                    const value = JSON.parse(stream.values[0][1])
-
-                    let message = value.log
-                        .replaceAll(/\s+/g, ' ')
-                        .replaceAll('\n', '')
-                        .trim()
-
-                    const logLevel = await this.parseLogLevel(message)
+                    let message = stream.values[0][1]
 
                     try {
                         // Check if message is a json
@@ -62,6 +52,17 @@ export class Loki {
                     } catch {
                         // Message is not a json, do nothing
                     }
+
+                    // Prettify and trim
+                    message = message
+                        .replaceAll(/\s+/g, ' ')
+                        .replaceAll('\n', '')
+                        .replaceAll('\\"', "'")
+                        .replaceAll('"', '')
+                        .trim()
+
+                    const logLevel = await this.parseLogLevel(message)
+                    const prefix = `${Loki.name}:${stream.stream.app}`
 
                     switch (logLevel) {
                         case 'debug':
