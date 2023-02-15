@@ -42,6 +42,8 @@ export class Loki {
             try {
                 const streams: Array<any> = JSON.parse(data.toString()).streams
                 for (const stream of streams) {
+                    await log.debug(JSON.stringify(stream))
+
                     const prefix = `${Loki.name}:${stream.stream.app}`
                     const value = JSON.parse(stream.values[0][1])
 
