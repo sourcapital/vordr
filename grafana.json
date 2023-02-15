@@ -1,0 +1,1652 @@
+{
+  "__inputs": [],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "7.4.3"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 38,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {
+          "valueSize": 50
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dateTrunc('minute', dt) as time,\n    max(toInt32(replaceRegexpAll(replaceRegexpAll(message, '^.* bond = ([0-9,]+) \\| reward = ([0-9,]+).*$', '\\\\1'), ',', ''))) as Bond\nFROM $table\n\nWHERE message LIKE '%Thornode:Bond%'\n\nGROUP BY time\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dateTrunc('minute', dt) as time,\n    max(toInt32(replaceRegexpAll(replaceRegexpAll(message, '^.* bond = ([0-9,]+) \\| reward = ([0-9,]+).*$', '\\\\1'), ',', ''))) as Bond\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Thornode:Bond%'\n\nGROUP BY time\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Bond",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "seriesToRows",
+            "reducers": [
+              "last"
+            ]
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 39,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {
+          "valueSize": 50
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dateTrunc('minute', dt) as time,\n    max(toInt32(replaceRegexpAll(replaceRegexpAll(message, '^.* bond = ([0-9,]+) \\| reward = ([0-9,]+).*$', '\\\\2'), ',', ''))) as Reward\nFROM $table\n\nWHERE message LIKE '%Thornode:Bond%'\n\nGROUP BY time\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dateTrunc('minute', dt) as time,\n    max(toInt32(replaceRegexpAll(replaceRegexpAll(message, '^.* bond = ([0-9,]+) \\| reward = ([0-9,]+).*$', '\\\\2'), ',', ''))) as Reward\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Thornode:Bond%'\n\nGROUP BY time\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Rewards",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "reducers": [
+              "last"
+            ]
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 22,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dateTrunc('minute', dt) as time,\n    max(toInt32(replaceRegexpAll(replaceRegexpAll(message, '^.* ([0-9,]+) \\| network = ([0-9,]+) \\(min\\), ([0-9,]+) \\(threshold\\), ([0-9,]+) \\(max\\).*$', '\\\\1'), ',', ''))) as \"Slash Points\"\nFROM $table\n\nWHERE message LIKE '%Thornode:SlashPoints%'\n\nGROUP BY time\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dateTrunc('minute', dt) as time,\n    max(toInt32(replaceRegexpAll(replaceRegexpAll(message, '^.* ([0-9,]+) \\| network = ([0-9,]+) \\(min\\), ([0-9,]+) \\(threshold\\), ([0-9,]+) \\(max\\).*$', '\\\\1'), ',', ''))) as \"Slash Points\"\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Thornode:SlashPoints%'\n\nGROUP BY time\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Slash Points",
+      "transformations": [
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "Time"
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 34,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dateTrunc('minute', dt) as time,\n    max(toInt32(replaceRegexpAll(replaceRegexpAll(message, '^.* ([0-9,]+) \\| network = ([0-9,]+) \\(min\\), ([0-9,]+) \\(threshold\\), ([0-9,]+) \\(max\\).*$', '\\\\2'), ',', ''))) as Min,\n    max(toInt32(replaceRegexpAll(replaceRegexpAll(message, '^.* ([0-9,]+) \\| network = ([0-9,]+) \\(min\\), ([0-9,]+) \\(threshold\\), ([0-9,]+) \\(max\\).*$', '\\\\3'), ',', ''))) as Threshold,\n    max(toInt32(replaceRegexpAll(replaceRegexpAll(message, '^.* ([0-9,]+) \\| network = ([0-9,]+) \\(min\\), ([0-9,]+) \\(threshold\\), ([0-9,]+) \\(max\\).*$', '\\\\4'), ',', ''))) as Max\nFROM $table\n\nWHERE message LIKE '%Thornode:SlashPoints%'\n\nGROUP BY time\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dateTrunc('minute', dt) as time,\n    max(toInt32(replaceRegexpAll(replaceRegexpAll(message, '^.* ([0-9,]+) \\| network = ([0-9,]+) \\(min\\), ([0-9,]+) \\(threshold\\), ([0-9,]+) \\(max\\).*$', '\\\\2'), ',', ''))) as Min,\n    max(toInt32(replaceRegexpAll(replaceRegexpAll(message, '^.* ([0-9,]+) \\| network = ([0-9,]+) \\(min\\), ([0-9,]+) \\(threshold\\), ([0-9,]+) \\(max\\).*$', '\\\\3'), ',', ''))) as Threshold,\n    max(toInt32(replaceRegexpAll(replaceRegexpAll(message, '^.* ([0-9,]+) \\| network = ([0-9,]+) \\(min\\), ([0-9,]+) \\(threshold\\), ([0-9,]+) \\(max\\).*$', '\\\\4'), ',', ''))) as Max\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Thornode:SlashPoints%'\n\nGROUP BY time\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Slash Points",
+      "transformations": [
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "Time"
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 7
+      },
+      "id": 19,
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dateTrunc('minute', dt) as time,\n    replaceRegexpAll(message, '^Kubernetes:([a-zA-Z]+):Pod:Restarts: ([0-9]+)$', '\\\\1') as node,\n    sum(toInt32(replaceRegexpAll(message, '^Kubernetes:([a-zA-Z]+):Pod:Restarts: ([0-9]+)$', '\\\\2'))) as restarts\nFROM $table\n\nWHERE message LIKE '%Pod:Restarts%'\n\nGROUP BY\n    time,\n    node\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dateTrunc('minute', dt) as time,\n    replaceRegexpAll(message, '^Kubernetes:([a-zA-Z]+):Pod:Restarts: ([0-9]+)$', '\\\\1') as node,\n    sum(toInt32(replaceRegexpAll(message, '^Kubernetes:([a-zA-Z]+):Pod:Restarts: ([0-9]+)$', '\\\\2'))) as restarts\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Pod:Restarts%'\n\nGROUP BY\n    time,\n    node\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Pod Restarts",
+      "transformations": [],
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 7
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dateTrunc('hour', dt) as time,\n    replaceRegexpAll(message, '^Kubernetes:([a-zA-Z]+):Pod:DiskUsage: [0-9.,]+[a-zA-Z]+ \\/ [0-9.,]+[a-zA-Z]+ \\(([0-9.]+)%\\)$', '\\\\1') as node,\n    max(round(toFloat32(replaceRegexpAll(message, '^Kubernetes:([a-zA-Z]+):Pod:DiskUsage: [0-9.,]+[a-zA-Z]+ \\/ [0-9.,]+[a-zA-Z]+ \\(([0-9.]+)%\\)$', '\\\\2')))) as diskUsage\nFROM $table\n\nWHERE message LIKE '%Pod:DiskUsage%'\n\nGROUP BY\n    time,\n    node\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dateTrunc('hour', dt) as time,\n    replaceRegexpAll(message, '^Kubernetes:([a-zA-Z]+):Pod:DiskUsage: [0-9.,]+[a-zA-Z]+ \\/ [0-9.,]+[a-zA-Z]+ \\(([0-9.]+)%\\)$', '\\\\1') as node,\n    max(round(toFloat32(replaceRegexpAll(message, '^Kubernetes:([a-zA-Z]+):Pod:DiskUsage: [0-9.,]+[a-zA-Z]+ \\/ [0-9.,]+[a-zA-Z]+ \\(([0-9.]+)%\\)$', '\\\\2')))) as diskUsage\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Pod:DiskUsage%'\n\nGROUP BY\n    time,\n    node\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Disk Usage",
+      "transformations": [
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "Time"
+          }
+        }
+      ],
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 35,
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dateTrunc('minute', dt) as time,\n    replaceRegexpAll(message, '^Loki:([a-zA-Z-]+):.*$', '\\\\1') as node,\n    count(node) as count\nFROM $table\n\nWHERE\n    message LIKE 'Loki:%:%'\n    AND level = 'error'\nGROUP BY\n    time,\n    node\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dateTrunc('minute', dt) as time,\n    replaceRegexpAll(message, '^Loki:([a-zA-Z-]+):.*$', '\\\\1') as node,\n    count(node) as count\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE\n    message LIKE 'Loki:%:%'\n    AND level = 'error'\nGROUP BY\n    time,\n    node\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Error Logs",
+      "transformations": [],
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "id": 36,
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dateTrunc('minute', dt) as time,\n    replaceRegexpAll(message, '^Loki:([a-zA-Z-]+):.*$', '\\\\1') as node,\n    count(node) as count\nFROM $table\n\nWHERE\n    message LIKE 'Loki:%:%'\n    AND level = 'warn'\nGROUP BY\n    time,\n    node\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dateTrunc('minute', dt) as time,\n    replaceRegexpAll(message, '^Loki:([a-zA-Z-]+):.*$', '\\\\1') as node,\n    count(node) as count\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE\n    message LIKE 'Loki:%:%'\n    AND level = 'warn'\nGROUP BY\n    time,\n    node\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Warn Logs",
+      "transformations": [],
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 28
+      },
+      "id": 37,
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dateTrunc('minute', dt) as time,\n    replaceRegexpAll(message, '^Loki:([a-zA-Z-]+):.*$', '\\\\1') as node,\n    count(node) as count\nFROM $table\n\nWHERE\n    message LIKE 'Loki:%:%'\n    AND level = 'info'\nGROUP BY\n    time,\n    node\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dateTrunc('minute', dt) as time,\n    replaceRegexpAll(message, '^Loki:([a-zA-Z-]+):.*$', '\\\\1') as node,\n    count(node) as count\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE\n    message LIKE 'Loki:%:%'\n    AND level = 'info'\nGROUP BY\n    time,\n    node\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Info Logs",
+      "transformations": [],
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 35
+      },
+      "id": 24,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "WITH blockHeights as (\n  SELECT\n    dateTrunc('minute', dt) as time,\n    replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\1'), ',', '') as node,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as nodeBlockHeight,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\3'), ',', '')) as apiBlockHeight\n  \n  FROM $table\n  \n  WHERE message LIKE '%:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n)\n\nSELECT\n  time,\n  node,\n  max(nodeBlockHeight - apiBlockHeight) as diff\n\nFROM blockHeights\n\nGROUP BY\n  time,\n  node\n\nORDER BY time",
+          "rawQuery": "WITH blockHeights as (\n  SELECT\n    dateTrunc('minute', dt) as time,\n    replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\1'), ',', '') as node,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as nodeBlockHeight,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\3'), ',', '')) as apiBlockHeight\n  \n  FROM {DATABASE_NAME}.{TABLE_NAME}\n  \n  WHERE message LIKE '%:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n)\n\nSELECT\n  time,\n  node,\n  max(nodeBlockHeight - apiBlockHeight) as diff\n\nFROM blockHeights\n\nGROUP BY\n  time,\n  node\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Blocks Ahead / Behind",
+      "transformations": [],
+      "type": "timeseries"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 0,
+        "y": 42
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM $table\n\nWHERE message LIKE '%Thorchain:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Thorchain:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "title": "THORChain Height",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "reduceFields",
+            "reducers": [
+              "last"
+            ]
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 8,
+        "y": 42
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM $table\n\nWHERE message LIKE '%Binance:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Binance:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "title": "Binance Height",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "reduceFields",
+            "reducers": [
+              "last"
+            ]
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 16,
+        "y": 42
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM $table\n\nWHERE message LIKE '%Bitcoin:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Bitcoin:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "title": "Bitcoin Height",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "reduceFields",
+            "reducers": [
+              "last"
+            ]
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 0,
+        "y": 44
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM $table\n\nWHERE message LIKE '%Ethereum:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Ethereum:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "title": "Ethereum Height",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "reduceFields",
+            "reducers": [
+              "last"
+            ]
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 8,
+        "y": 44
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM $table\n\nWHERE message LIKE '%Litecoin:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Litecoin:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "title": "Litecoin Height",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "reduceFields",
+            "reducers": [
+              "last"
+            ]
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 16,
+        "y": 44
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM $table\n\nWHERE message LIKE '%BitcoinCash:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%BitcoinCash:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "title": "BitcoinCash Height",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "reduceFields",
+            "reducers": [
+              "last"
+            ]
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 0,
+        "y": 46
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM $table\n\nWHERE message LIKE '%Dogecoin:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Dogecoin:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "title": "Dogecoin Height",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "reduceFields",
+            "reducers": [
+              "last"
+            ]
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 8,
+        "y": 46
+      },
+      "id": 9,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM $table\n\nWHERE message LIKE '%Cosmos:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Cosmos:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "title": "Cosmos Height",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "reduceFields",
+            "reducers": [
+              "last"
+            ]
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "locale"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 8,
+        "x": 16,
+        "y": 46
+      },
+      "id": 10,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.4.3",
+      "targets": [
+        {
+          "database": "{DATABASE_NAME}",
+          "dateTimeColDataType": "dt",
+          "dateTimeType": "DATETIME64",
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT toUnixTimestamp(toStartOfMinute(dt)) * 1000 as t, count() FROM $table WHERE dt BETWEEN toDateTime64($from, 3) AND toDateTime64($to, 3) GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM $table\n\nWHERE message LIKE '%Avalanche:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time\n",
+          "rawQuery": "SELECT\n    dt as time,\n    toInt32(replaceRegexpAll(replaceRegexpAll(message, '^([a-zA-Z]+):isSynced: nodeBlockHeight = ([0-9,]+) \\| apiBlockHeight = ([0-9,]+)$', '\\\\2'), ',', '')) as blockHeight\nFROM {DATABASE_NAME}.{TABLE_NAME}\n\nWHERE message LIKE '%Avalanche:isSynced: nodeBlockHeight = % | apiBlockHeight = %'\n\nORDER BY time",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "table": "{TABLE_NAME}",
+          "tableLoading": false
+        }
+      ],
+      "title": "Avalanche Height",
+      "transformations": [
+        {
+          "id": "reduce",
+          "options": {
+            "includeTimeField": false,
+            "mode": "reduceFields",
+            "reducers": [
+              "last"
+            ]
+          }
+        }
+      ],
+      "type": "stat"
+    }
+  ],
+  "refresh": "5m",
+  "schemaVersion": 27,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-2d",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "15s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h"
+    ]
+  },
+  "timezone": "",
+  "title": "{TABLE_NAME}",
+  "uid": "{UID}",
+  "version": 13
+}
