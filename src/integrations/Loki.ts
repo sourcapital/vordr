@@ -39,41 +39,45 @@ export class Loki {
         })
 
         this.ws.on('message', async (data) => {
-            const streams: Array<any> = JSON.parse(data.toString()).streams
-            for (const stream of streams) {
-                const prefix = `${Loki.name}:${stream.stream.app}`
-                const value = JSON.parse(stream.values[0][1])
+            try {
+                const streams: Array<any> = JSON.parse(data.toString()).streams
+                for (const stream of streams) {
+                    const prefix = `${Loki.name}:${stream.stream.app}`
+                    const value = JSON.parse(stream.values[0][1])
 
-                let message = value.log
-                    .replaceAll(/\s+/g, ' ')
-                    .replaceAll('\n', '')
-                    .trim()
+                    let message = value.log
+                        .replaceAll(/\s+/g, ' ')
+                        .replaceAll('\n', '')
+                        .trim()
 
-                const logLevel = await this.parseLogLevel(message)
+                    const logLevel = await this.parseLogLevel(message)
 
-                try {
-                    // Check if message is a json
-                    JSON.parse(message)
-                    // Stringify the message
-                    message = JSON.stringify(message)
-                } catch {
-                    // Message is not a json, do nothing
+                    try {
+                        // Check if message is a json
+                        JSON.parse(message)
+                        // Stringify the message
+                        message = JSON.stringify(message)
+                    } catch {
+                        // Message is not a json, do nothing
+                    }
+
+                    switch (logLevel) {
+                        case 'debug':
+                            await log.debug(`${prefix}: ${message}`)
+                            break
+                        case 'info':
+                            await log.info(`${prefix}: ${message}`)
+                            break
+                        case 'warn':
+                            await log.warn(`${prefix}: ${message}`)
+                            break
+                        case 'error':
+                            await log.error(`${prefix}: ${message}`)
+                            break
+                    }
                 }
-
-                switch (logLevel) {
-                    case 'debug':
-                        await log.debug(`${prefix}: ${message}`)
-                        break
-                    case 'info':
-                        await log.info(`${prefix}: ${message}`)
-                        break
-                    case 'warn':
-                        await log.warn(`${prefix}: ${message}`)
-                        break
-                    case 'error':
-                        await log.error(`${prefix}: ${message}`)
-                        break
-                }
+            } catch (error) {
+                await handleError(error)
             }
         })
     }
