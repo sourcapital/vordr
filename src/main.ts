@@ -21,6 +21,7 @@ global.sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 global.log = new Log()
 global.betterUptime = new BetterUptime(config.betterUptime.apiKey)
 global.kubernetes = new Kubernetes()
+global.loki = new Loki()
 
 // Init nodes
 let nodes: Array<Node>
@@ -60,7 +61,7 @@ await kubernetes.setupRestartMonitoring('* * * * *') // every minute
 
 // Setup Loki log stream
 await log.info('Initializing Loki stream ...')
-await new Loki().connect()
+await loki.connect()
 
 // Run node health monitoring every minute
 new Cron('* * * * *', async () => {

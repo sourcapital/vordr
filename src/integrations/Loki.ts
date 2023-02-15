@@ -2,6 +2,7 @@ import WebSocket from 'ws'
 import moment from 'moment'
 import {config} from '../config.js'
 import {handleError} from '../helpers/Error.js'
+import {getContainerName} from './Kubernetes.js'
 
 export class Loki {
     private ws?: WebSocket
@@ -62,7 +63,7 @@ export class Loki {
                         .trim()
 
                     const logLevel = await this.parseLogLevel(message)
-                    const prefix = `${Loki.name}:${stream.stream.app}`
+                    const prefix = `${Loki.name}:${getContainerName(stream.stream.app)}`
 
                     switch (logLevel) {
                         case 'debug':
