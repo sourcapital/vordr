@@ -76,6 +76,8 @@ export class BetterUptime {
     }
 
     async initHeartbeats(name: string, types: Array<HeartbeatType>) {
+        if (config.nodeENV !== 'production') return
+
         const existingHeartbeats = await this.getAllHeartbeats()
 
         for (const type of types) {
@@ -93,8 +95,6 @@ export class BetterUptime {
     }
 
     async sendHeartbeat(name: string, type: HeartbeatType) {
-        if (config.nodeENV !== 'production') return
-
         try {
             const heartbeat = await this.getHeartbeat(name, type)
             const response = await axios.get(heartbeat.attributes.url)
