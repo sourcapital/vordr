@@ -80,17 +80,17 @@
   dependencies:
     "@logtail/types" "^0.2.0"
 
-"@logtail/types@^0.1.12":
-  version "0.1.12"
-  resolved "https://registry.yarnpkg.com/@logtail/types/-/types-0.1.12.tgz#af12897c4710ebac76c2e2a5a72af5c6d5d9220b"
-  integrity sha512-PnMweu6oyfBCn3/iLfQBf+tTaOIle4gRUFuRnqze72kR5CKFlBAq3h4Yur3KRiDtYJcT8H+x1kZWZtC/xdAYAg==
-  dependencies:
-    js "^0.1.0"
-
 "@logtail/types@^0.2.0":
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@logtail/types/-/types-0.2.0.tgz#131954d434932d481361b35c5c05fec0329d5483"
   integrity sha512-tcSHCUdr1Kax3wPYbBMSuNowzhJZfyC8fi06gEOZNT7NR45eZxHnF42CozDdx0QE3Pp2nPt62ARGYOHxJ4f+Qw==
+  dependencies:
+    js "^0.1.0"
+
+"@logtail/types@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@logtail/types/-/types-0.3.0.tgz#dffe1cced0de0d9ee1e6c72e695debc823e4a2e8"
+  integrity sha512-Du6KiaFwChIKyDRTbjZ52ttagLbfAHif4Q/4Crdu/dadYBUaoXkICd8GivUCIT89APiYGSQ032Ku2d8gU3NnRg==
   dependencies:
     js "^0.1.0"
 
