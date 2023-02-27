@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@kubernetes/client-node": "^0.18.1",
-    "@logtail/node": "^0.2.0",
+    "@logtail/node": "^0.3.0",
     "@logtail/types": "^0.1.12",
     "@types/cron": "^2.0.0",
     "@types/numeral": "^2.0.2",
