@@ -119,7 +119,7 @@ export class Thornode extends Cosmos {
             const bond = Number(nodeResponse.data.total_bond) / 1e8
             const reward = Number(nodeResponse.data.current_award) / 1e8
 
-            await log.info(`${Thornode.name}:Bond: bond = ${numeral(bond).format('0,0')} | reward = ${numeral(reward).format('0,0')}`)
+            await log.info(`${Thornode.name}:Bond: bond = ${numeral(bond).format('0')} | reward = ${numeral(reward).format('0')}`)
         } catch (error) {
             await handleError(error)
         }
@@ -160,20 +160,29 @@ export class Thornode extends Cosmos {
                 return
             }
 
-            // Use the worst performing 10% as threshold
-            const threshold = activeNodes[Math.floor(activeNodes.length / 10)].slashPoints
+            // Calculate min, max and worst top 10 threshold
             const min = _.min(activeNodes, (node) => {
                 return node.slashPoints
             }).slashPoints
             const max = _.max(activeNodes, (node) => {
                 return node.slashPoints
             }).slashPoints
+            const worstTop10Threshold = activeNodes[Math.floor(activeNodes.length / 10)].slashPoints
 
-            await log.info(`${Thornode.name}:SlashPoints: ${numeral(node.slashPoints).format('0,0')} | network = ${numeral(min).format('0,0')} (min), ${numeral(threshold).format('0,0')} (threshold), ${numeral(max).format('0,0')} (max)`)
+            // Calculate average
+            const sum = _.reduce(activeNodes, (total, node) => total + node.slashPoints, 0)
+            const average = sum / activeNodes.length
 
-            // Alert if slash points are above threshold
-            if (node.slashPoints > threshold) {
-                await betterUptime.createSlashPointIncident(Thornode.name, node.slashPoints, threshold)
+            // Calculate median
+            const sortedNodes = _.sortBy(activeNodes, (node) => node.slashPoints)
+            const mid = Math.floor(sortedNodes.length / 2)
+            const median = sortedNodes.length % 2 === 0 ? (sortedNodes[mid - 1].slashPoints + sortedNodes[mid].slashPoints) / 2 : sortedNodes[mid].slashPoints
+
+            await log.info(`${Thornode.name}:SlashPoints: ${numeral(node.slashPoints).format('0')} | network = ${numeral(min).format('0')} (min), ${numeral(median).format('0')} (median), ${numeral(average).format('0')} (average), ${numeral(worstTop10Threshold).format('0')} (worstTop10Threshold), ${numeral(max).format('0')} (max)`)
+
+            // Alert if node enters the worst top 10
+            if (node.slashPoints > worstTop10Threshold) {
+                await betterUptime.createSlashPointIncident(Thornode.name, node.slashPoints, worstTop10Threshold)
             } else {
                 await betterUptime.resolveIncidents(Thornode.name, IncidentType.SLASH_POINTS)
             }
@@ -220,11 +229,68 @@ export class Thornode extends Cosmos {
             if (releaseHeight > currentHeight) {
                 const reason = jail.reason ?? 'unknown'
                 const diff = releaseHeight - currentHeight
-                await log.info(`${Thornode.name}:Jail: Node is jailed for ${numeral(diff).format('0,0')} more blocks! (releaseHeight = ${numeral(releaseHeight).format('0,0')}, reason = '${reason}')`)
+                await log.info(`${Thornode.name}:Jail: Node is jailed for ${numeral(diff).format('0')} more blocks! (releaseHeight = ${numeral(releaseHeight).format('0,0')}, reason = '${reason}')`)
 
                 await betterUptime.createJailIncident(Thornode.name, reason, releaseHeight)
             } else {
                 await betterUptime.resolveIncidents(Thornode.name, IncidentType.JAIL)
+            }
+        } catch (error) {
+            await handleError(error)
+        }
+    }
+
+    async monitorChainObservations() {
+        try {
+            const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
+
+            if (nodeResponse.status !== 200) {
+                await log.error(`${Thornode.name}:${this.monitorChainObservations.name}: Node HTTP status code: ${nodeResponse.status}`)
+                return
+            }
+
+            let activeNodes = _.filter(nodeResponse.data, (node) => {
+                return node.status.toLowerCase() === 'active'
+            })
+            activeNodes = _.map(activeNodes, (node) => {
+                return {
+                    address: node.node_address,
+                    observedChains: node.observe_chains
+                }
+            })
+
+            // Get the thornode's address
+            const nodeAddress = this.getAddress()
+
+            // Try to find the node in the active nodes
+            const node = _.find(activeNodes, (node) => {
+                return node.address === nodeAddress
+            })
+
+            if (!node) {
+                await log.info(`${Thornode.name}:${this.monitorChainObservations.name}: Node is not active. Skipping chain observation monitoring ...`)
+                return
+            }
+
+            for(const observedChain of node.observedChains) {
+                const chain = observedChain.chain.toUpperCase()
+                const observedHeight = observedChain.height
+
+                const latestObservedHeightForChain = _.max(_.map(activeNodes, (otherNode) => {
+                    return _.find(otherNode.observedChains, (observedChain) => {
+                        return observedChain.chain.toUpperCase() === chain
+                    })?.height ?? -1 // Could be undefined for newer nodes that haven't observed previous chains (e.g. Terra)
+                }))
+
+                // Alert if node is behind on chain observations
+                if (observedHeight < latestObservedHeightForChain) {
+                    const diff = latestObservedHeightForChain - observedHeight
+                    await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${numeral(diff).format('0,0')} blocks behind the latest observation of the network! (observedHeight = ${numeral(observedHeight).format('0,0')}, latestObservedHeightForChain = ${numeral(latestObservedHeightForChain).format('0,0')})`)
+
+                    await betterUptime.createChainObservationIncident(chain, diff)
+                } else {
+                    await betterUptime.resolveIncidents(chain, IncidentType.CHAIN_OBSERVATION)
+                }
             }
         } catch (error) {
             await handleError(error)
