@@ -12,6 +12,7 @@ A monitoring application for THORNodes.
 - Kubernetes pod logs of all chains are aggregated
 - Slash points are monitored every minute
 - Jailing is monitored every minute
+- Chain observations are monitored every minute
 
 ## Supported Chains
 
@@ -85,7 +86,8 @@ BetterUptime is used for alerting and incident management.
 - Kubernetes pod restarts create incidents
 - High slash points create incidents
 - Jailing creates incidents
-- Outdated THORChain version creates incidents
+- Lagging chain observations create incidents
+- Outdated THORChain versions creates incidents
 
 #### API Key
 
