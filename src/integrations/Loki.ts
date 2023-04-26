@@ -9,6 +9,8 @@ export class Loki {
     private retries = 3
 
     async connect() {
+        if (config.nodeENV !== 'production') return
+
         await log.debug(`${Loki.name}: Connecting ...`)
 
         const host = config.nodeENV === 'production' ? 'loki.loki-system' : 'localhost'
