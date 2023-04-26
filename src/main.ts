@@ -80,6 +80,7 @@ new Cron('* * * * *', async () => {
         thornode.monitorVersion(),
         thornode.monitorBond(),
         thornode.monitorSlashPoints(),
-        thornode.monitorJailing()
+        thornode.monitorJailing(),
+        thornode.monitorChainObservations()
     ])
 }).run()
