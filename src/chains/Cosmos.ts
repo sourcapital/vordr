@@ -55,32 +55,34 @@ export class Cosmos extends Node {
 
         try {
             let apiUrl: string
+            let backupApiUrl: string
             switch (this.chain) {
                 case Chain.Cosmos:
                     apiUrl = 'https://gaia.ninerealms.com/status'
+                    backupApiUrl = 'https://cosmos-rpc.polkachu.com/status'
                     break
                 case Chain.Binance:
                     apiUrl = 'https://binance.ninerealms.com/status'
+                    backupApiUrl = 'https://dataseed1.binance.org/status'
                     break
                 case Chain.Thorchain:
                     apiUrl = 'https://rpc.ninerealms.com/status'
+                    backupApiUrl = 'https://rpc.thorchain.liquify.com/status'
                     break
             }
 
             // Await all time critical request together to minimize any delay (e.g. difference in block height)
-            const [nodeResponse, apiResponse] = await Promise.all([
+            const [nodeResponse, apiResponse, backupApiResponse] = await Promise.all([
                 axios.get(`${this.url}/status`),
-                axios.get(apiUrl)
+                axios.get(apiUrl),
+                axios.get(backupApiUrl)
             ])
 
             if (nodeResponse.status !== 200) {
                 await log.error(`${getChainName(this.chain)}:${this.isSynced.name}:status: Node HTTP status code: ${nodeResponse.status}`)
                 return false
             }
-            if (apiResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}: API HTTP status code: ${apiResponse.status}`)
-                return false
-            }
+            const nodeBlockHeight = Number(nodeResponse.data.result.sync_info.latest_block_height)
 
             const isSyncing = nodeResponse.data.result.sync_info.catching_up
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: isSyncing = ${isSyncing}`)
@@ -91,8 +93,25 @@ export class Cosmos extends Node {
                 return false
             }
 
-            const nodeBlockHeight = Number(nodeResponse.data.result.sync_info.latest_block_height)
-            const apiBlockHeight = Number(apiResponse.data.result.sync_info.latest_block_height)
+            // Get API block height
+            let apiBlockHeight = 0
+            if (apiResponse.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}: API HTTP status code: ${apiResponse.status}`)
+            } else {
+                apiBlockHeight = Number(apiResponse.data.result.sync_info.latest_block_height)
+            }
+
+            // Get backup API block height
+            let backupApiBlockHeight = 0
+            if (backupApiResponse.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}: Backup API HTTP status code: ${backupApiResponse.status}`)
+            } else {
+                backupApiBlockHeight = Number(backupApiResponse.data.result.sync_info.latest_block_height)
+            }
+
+            // Use the highest block height
+            apiBlockHeight = Math.max(apiBlockHeight, backupApiBlockHeight)
+
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')} | apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
             // Check if node is behind the api block height (1 block behind is ok due to network latency)

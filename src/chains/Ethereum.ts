@@ -54,35 +54,30 @@ export class Ethereum extends Node {
 
         try {
             let apiUrl: string
+            let backupApiUrl: string
             switch (this.chain) {
                 case Chain.Ethereum:
                     apiUrl = 'https://ethereum.ninerealms.com'
+                    backupApiUrl = 'https://eth.llamarpc.com'
                     break
                 case Chain.Avalanche:
                     apiUrl = 'https://avalanche.ninerealms.com/ext/bc/C/rpc'
+                    backupApiUrl = 'https://1rpc.io/avax/c'
                     break
             }
 
             // Await all time critical request together to minimize any delay (e.g. difference in block height)
-            const [nodeResponseSync, nodeResponseBlockNumber, apiResponse] = await Promise.all([
+            const [nodeResponseSync, nodeResponseBlockNumber, apiResponse, backupApiResponse] = await Promise.all([
                 this.query('eth_syncing'),
                 this.query('eth_blockNumber'),
-                this.query('eth_blockNumber', apiUrl)
+                this.query('eth_blockNumber', apiUrl),
+                this.query('eth_blockNumber', backupApiUrl)
             ])
 
             if (nodeResponseSync.status !== 200) {
                 await log.error(`${getChainName(this.chain)}:${this.isSynced.name}:eth_syncing: Node HTTP status code: ${nodeResponseSync.status}`)
                 return false
             }
-            if (nodeResponseBlockNumber.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}:eth_blockNumber: Node HTTP status code: ${nodeResponseBlockNumber.status}`)
-                return false
-            }
-            if (apiResponse.status !== 200) {
-                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}: API HTTP status code: ${apiResponse.status}`)
-                return false
-            }
-
             const isSyncing = nodeResponseSync.data.result
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: isSyncing = ${isSyncing}`)
 
@@ -92,8 +87,31 @@ export class Ethereum extends Node {
                 return false
             }
 
+            if (nodeResponseBlockNumber.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}:eth_blockNumber: Node HTTP status code: ${nodeResponseBlockNumber.status}`)
+                return false
+            }
             const nodeBlockHeight = Number(nodeResponseBlockNumber.data.result)
-            const apiBlockHeight = Number(apiResponse.data.result)
+
+            // Get API block height
+            let apiBlockHeight = 0
+            if (apiResponse.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}: API HTTP status code: ${apiResponse.status}`)
+            } else {
+                apiBlockHeight = Number(apiResponse.data.result)
+            }
+
+            // Get backup API block height
+            let backupApiBlockHeight = 0
+            if (backupApiResponse.status !== 200) {
+                await log.error(`${getChainName(this.chain)}:${this.isSynced.name}: Backup API HTTP status code: ${backupApiResponse.status}`)
+            } else {
+                backupApiBlockHeight = Number(backupApiResponse.data.result)
+            }
+
+            // Use the highest block height
+            apiBlockHeight = Math.max(apiBlockHeight, backupApiBlockHeight)
+
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')} | apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
             // Check if node is behind the api block height (1 block behind is ok due to network latency)
