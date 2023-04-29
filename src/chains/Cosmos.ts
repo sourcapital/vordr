@@ -114,8 +114,11 @@ export class Cosmos extends Node {
 
             await log.debug(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')} | apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
 
-            // Check if node is behind the api block height (1 block behind is ok due to network latency)
-            if (nodeBlockHeight < apiBlockHeight - 1) {
+            // Give Binance Chain 2 grace blocks, all other chains 1 grace block
+            const graceBlocks = this.chain === Chain.Binance ? 2 : 1
+
+            // Check if node is behind the api block height
+            if (nodeBlockHeight < apiBlockHeight - graceBlocks) {
                 await log.warn(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight < apiBlockHeight: ${numeral(nodeBlockHeight).format('0,0')} < ${numeral(apiBlockHeight).format('0,0')}`)
                 return false
             }
