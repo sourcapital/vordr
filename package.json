@@ -12,7 +12,7 @@
     "start": "node dist/main.js"
   },
   "devDependencies": {
-    "typescript": "^4.9.5"
+    "typescript": "^5.0.4"
   },
   "dependencies": {
     "@kubernetes/client-node": "^0.18.1",
