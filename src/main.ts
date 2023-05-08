@@ -57,21 +57,21 @@ await log.info('Initializing heartbeats ...')
 for (const node of nodes) await node.initHeartbeats()
 
 // Setup kubernetes pod monitoring
-await kubernetes.setupRestartMonitoring('* * * * *') // every minute
+await kubernetes.setupRestartMonitoring('0 * * * * *') // every minute
 
 // Setup Loki log stream
 await log.info('Initializing Loki stream ...')
 await loki.connect()
 
 // Run node health monitoring every minute
-new Cron('* * * * *', async () => {
+new Cron('0 * * * * *', async () => {
     await Promise.all(_.flatten(_.map(nodes, (node) => {
         return [node.isUp(), node.isSynced()]
     })))
 }).run()
 
 // Monitor slash points, jailing and version every minute
-new Cron('* * * * *', async () => {
+new Cron('0 * * * * *', async () => {
     const thornode = _.find(nodes, (node) => {
         return node.constructor.name === Thornode.name
     }) as Thornode
@@ -80,6 +80,7 @@ new Cron('* * * * *', async () => {
         thornode.monitorVersion(),
         thornode.monitorBond(),
         thornode.monitorSlashPoints(),
-        thornode.monitorJailing()
+        thornode.monitorJailing(),
+        thornode.monitorChainObservations()
     ])
 }).run()
