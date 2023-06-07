@@ -293,7 +293,7 @@ export class Thornode extends Cosmos {
                 // Alert if node is behind on chain observations
                 if (observedHeight < latestObservedHeightForChain) {
                     const diff = latestObservedHeightForChain - observedHeight
-                    await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${numeral(diff).format('0,0')} blocks behind the latest observation of the network! (observedHeight = ${numeral(observedHeight).format('0,0')}, latestObservedHeightForChain = ${numeral(latestObservedHeightForChain).format('0,0')})`)
+                    await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${numeral(diff).format('0')} blocks behind the latest observation of the network! (observedHeight = ${numeral(observedHeight).format('0,0')}, latestObservedHeightForChain = ${numeral(latestObservedHeightForChain).format('0,0')})`)
 
                     await betterUptime.createChainObservationIncident(chain, diff)
                 } else {

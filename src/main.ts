@@ -72,11 +72,14 @@ await loki.connect()
 // Run node health monitoring every minute
 new Cron('0 * * * * *', async () => {
     await Promise.all(_.flatten(_.map(nodes, (node) => {
-        return [node.isUp(), node.isSynced()]
+        return [
+            node.isUp(),
+            node.isSynced()
+        ]
     })))
 }).run()
 
-// Monitor slash points, jailing and version every minute
+// Monitor version, bond slash points & jailing every minute
 new Cron('0 * * * * *', async () => {
     const thornode = _.find(nodes, (node) => {
         return node.constructor.name === Thornode.name
@@ -86,7 +89,17 @@ new Cron('0 * * * * *', async () => {
         thornode.monitorVersion(),
         thornode.monitorBond(),
         thornode.monitorSlashPoints(),
-        thornode.monitorJailing(),
+        thornode.monitorJailing()
+    ])
+}).run()
+
+// Monitor chain observations every 10 minutes
+new Cron('*/10 * * * * *', async () => {
+    const thornode = _.find(nodes, (node) => {
+        return node.constructor.name === Thornode.name
+    }) as Thornode
+
+    await Promise.all([
         thornode.monitorChainObservations()
     ])
 }).run()
