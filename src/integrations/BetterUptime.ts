@@ -1,8 +1,9 @@
 import _ from 'underscore'
 import moment from 'moment'
 import numeral from 'numeral'
-import axios, {AxiosResponse} from 'axios'
 import {config} from '../config.js'
+import {Cron} from '../helpers/Cron.js'
+import axios, {AxiosResponse} from 'axios'
 import {handleError} from '../helpers/Error.js'
 
 declare type Heartbeat = {
@@ -70,9 +71,32 @@ export enum IncidentType {
 
 export class BetterUptime {
     private readonly apiKey: string
+    private cache: Map<string, number> = new Map()
 
     constructor(apiKey: string) {
         this.apiKey = apiKey
+    }
+
+    async setupCleanup(schedule: string) {
+        if (config.nodeENV !== 'production') return
+
+        await log.info(`${BetterUptime.name}: Setup cleanup ...`)
+
+        new Cron(schedule, async () => {
+            const incidents = await this.getIncidents(undefined, true, false)
+
+            for (const incident of incidents) {
+                const daysInAge = moment().diff(moment(incident.attributes.started_at), 'days')
+
+                if (daysInAge > 7) {
+                    await this.deleteIncident(incident.id)
+                }
+            }
+
+            this.cache.clear()
+
+            await log.info(`${BetterUptime.name}: Cleaned!`)
+        }).run()
     }
 
     async initHeartbeats(name: string, types: Array<HeartbeatType>) {
@@ -112,54 +136,82 @@ export class BetterUptime {
     }
 
     async createRestartIncident(name: string, restartCount: number) {
-        const incidents = await this.getIncidents(`${name} ${IncidentType.RESTART}`, undefined)
-        const latestIncident = _.last(incidents)
-        const previousRestarts = latestIncident ? Number(/total: ([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
+        const identifier = `${name} ${IncidentType.RESTART}`
+        let previousRestarts = this.cache.get(identifier)
+
+        if (previousRestarts === undefined) {
+            const incidents = await this.getIncidents(identifier, undefined, true)
+            const latestIncident = _.last(incidents)
+            previousRestarts = latestIncident ? Number(/total: ([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
+            this.cache.set(identifier, previousRestarts)
+        }
 
         if (restartCount > previousRestarts) {
             await this.createIncident(
                 `${name} ${IncidentType.RESTART}`,
                 `${name} pod restarted! (total: ${numeral(restartCount).format('0')})`
             )
+            this.cache.set(identifier, restartCount)
         }
     }
 
     async createSlashPointIncident(name: string, slashPoints: number, threshold: number) {
-        const incidents = await this.getIncidents(`${name} ${IncidentType.SLASH_POINTS}`, undefined)
-        const latestIncident = _.last(incidents)
-        const previousSlashPoints = latestIncident ? Number(/([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
+        const identifier = `${name} ${IncidentType.SLASH_POINTS}`
+        let previousSlashPoints = this.cache.get(identifier)
+
+        if (previousSlashPoints === undefined) {
+            const incidents = await this.getIncidents(identifier, undefined, true)
+            const latestIncident = _.last(incidents)
+            previousSlashPoints = latestIncident ? Number(/([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
+            this.cache.set(identifier, previousSlashPoints)
+        }
 
         if (slashPoints > threshold && slashPoints > 2 * previousSlashPoints) {
             await this.createIncident(
                 `${name} ${IncidentType.SLASH_POINTS}`,
                 `${name} has accumulated ${numeral(slashPoints).format('0')} slash points!`
             )
+            this.cache.set(identifier, slashPoints)
         }
     }
 
     async createJailIncident(name: string, reason: string, releaseHeight: number) {
-        const incidents = await this.getIncidents(`${name} ${IncidentType.JAIL}`, undefined)
-        const latestIncident = _.last(incidents)
-        const previousReleaseHeight = latestIncident ? Number(/releaseHeight = ([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
+        const identifier = `${name} ${IncidentType.JAIL}`
+        let previousReleaseHeight = this.cache.get(identifier)
+
+        if (previousReleaseHeight === undefined) {
+            const incidents = await this.getIncidents(identifier, undefined, true)
+            const latestIncident = _.last(incidents)
+            previousReleaseHeight = latestIncident ? Number(/releaseHeight = ([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
+            this.cache.set(identifier, previousReleaseHeight)
+        }
 
         if (releaseHeight > previousReleaseHeight) {
             await this.createIncident(
                 `${name} ${IncidentType.JAIL}`,
                 `${name} has been jailed! (releaseHeight = ${numeral(releaseHeight).format('0')}, reason = '${reason}')`
             )
+            this.cache.set(identifier, releaseHeight)
         }
     }
 
     async createChainObservationIncident(name: string, blocksBehind: number) {
-        const incidents = await this.getIncidents(`${name} ${IncidentType.CHAIN_OBSERVATION}`, undefined)
-        const latestIncident = _.last(incidents)
-        const previousBlocksBehind = latestIncident ? Number(/([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
+        const identifier = `${name} ${IncidentType.CHAIN_OBSERVATION}`
+        let previousBlocksBehind = this.cache.get(identifier)
+
+        if (previousBlocksBehind === undefined) {
+            const incidents = await this.getIncidents(identifier, undefined, true)
+            const latestIncident = _.last(incidents)
+            previousBlocksBehind = latestIncident ? Number(/([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
+            this.cache.set(identifier, previousBlocksBehind)
+        }
 
         if (blocksBehind > 2 * previousBlocksBehind) {
             await this.createIncident(
                 `${name} ${IncidentType.CHAIN_OBSERVATION}`,
                 `${name} is ${numeral(blocksBehind).format('0')} blocks behind the latest observation of the network!`
             )
+            this.cache.set(identifier, blocksBehind)
         }
     }
 
@@ -328,6 +380,8 @@ export class BetterUptime {
         let nextPageUrl = undefined
 
         do {
+            await log.debug(`${BetterUptime.name}:${this.getIncidents.name}: title='${title}', resolved='${resolved}', returnEarly='${returnEarly}', nextPageUrl=${nextPageUrl}`)
+
             if (nextPageUrl) {
                 response = await this.send('GET', 'incidents', undefined, nextPageUrl)
             }

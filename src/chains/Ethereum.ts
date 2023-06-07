@@ -6,7 +6,8 @@ import {HeartbeatType} from '../integrations/BetterUptime.js'
 
 export enum Chain {
     Ethereum = 'ethereum',
-    Avalanche = 'avalanche'
+    Avalanche = 'avalanche',
+    BinanceSmartChain = 'binance-smart'
 }
 
 const getChainName = (chain: string | Chain): string => {
@@ -60,6 +61,9 @@ export class Ethereum extends Node {
                     break
                 case Chain.Avalanche:
                     apiUrl = 'https://avalanche.ninerealms.com/ext/bc/C/rpc'
+                    break
+                case Chain.BinanceSmartChain:
+                    apiUrl = 'https://binance-smart.ninerealms.com'
                     break
             }
 
