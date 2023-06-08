@@ -12,14 +12,14 @@ A monitoring application for THORNodes.
 - Kubernetes pod logs of all chains are aggregated
 - Slash points are monitored every minute
 - Jailing is monitored every minute
-- Chain observations are monitored every minute
+- Chain observations are monitored every 10 minutes
 
 ## Supported Chains
 
 | Client   | Chain                                                              |
 |----------|--------------------------------------------------------------------|
 | Bitcoin  | Bitcoin (BTC), Litecoin (LTC), Bitcoin Cash (BCH), Dogecoin (DOGE) |
-| Ethereum | Ethereum (ETH), Avalanche (AVAX)                                   |
+| Ethereum | Ethereum (ETH), Avalanche (AVAX), Binance Smart Chain (BSC)        |
 | Cosmos   | Cosmos (ATOM), Binance (BNB), THORChain (RUNE)                     |
 
 ## Kubernetes
