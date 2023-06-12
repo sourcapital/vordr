@@ -21,7 +21,7 @@
     "@types/cron": "^2.0.1",
     "@types/numeral": "^2.0.2",
     "@types/underscore": "^1.11.5",
-    "@types/ws": "^8.5.4",
+    "@types/ws": "^8.5.5",
     "axios": "^1.4.0",
     "cron": "^2.3.0",
     "moment": "^2.29.4",
