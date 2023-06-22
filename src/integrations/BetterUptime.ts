@@ -93,8 +93,6 @@ export class BetterUptime {
                 }
             }
 
-            this.cache.clear()
-
             await log.info(`${BetterUptime.name}: Cleaned!`)
         }).run()
     }
@@ -137,14 +135,7 @@ export class BetterUptime {
 
     async createRestartIncident(name: string, restartCount: number) {
         const identifier = `${name} ${IncidentType.RESTART}`
-        let previousRestarts = this.cache.get(identifier)
-
-        if (previousRestarts === undefined) {
-            const incidents = await this.getIncidents(identifier, undefined, true)
-            const latestIncident = _.last(incidents)
-            previousRestarts = latestIncident ? Number(/total: ([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
-            this.cache.set(identifier, previousRestarts)
-        }
+        const previousRestarts = this.cache.get(identifier) ?? 0
 
         if (restartCount > previousRestarts) {
             await this.createIncident(
@@ -157,14 +148,7 @@ export class BetterUptime {
 
     async createSlashPointIncident(name: string, slashPoints: number, threshold: number) {
         const identifier = `${name} ${IncidentType.SLASH_POINTS}`
-        let previousSlashPoints = this.cache.get(identifier)
-
-        if (previousSlashPoints === undefined) {
-            const incidents = await this.getIncidents(identifier, undefined, true)
-            const latestIncident = _.last(incidents)
-            previousSlashPoints = latestIncident ? Number(/([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
-            this.cache.set(identifier, previousSlashPoints)
-        }
+        const previousSlashPoints = this.cache.get(identifier) ?? 0
 
         if (slashPoints > threshold && slashPoints > 2 * previousSlashPoints) {
             await this.createIncident(
@@ -177,14 +161,7 @@ export class BetterUptime {
 
     async createJailIncident(name: string, reason: string, releaseHeight: number) {
         const identifier = `${name} ${IncidentType.JAIL}`
-        let previousReleaseHeight = this.cache.get(identifier)
-
-        if (previousReleaseHeight === undefined) {
-            const incidents = await this.getIncidents(identifier, undefined, true)
-            const latestIncident = _.last(incidents)
-            previousReleaseHeight = latestIncident ? Number(/releaseHeight = ([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
-            this.cache.set(identifier, previousReleaseHeight)
-        }
+        const previousReleaseHeight = this.cache.get(identifier) ?? 0
 
         if (releaseHeight > previousReleaseHeight) {
             await this.createIncident(
@@ -197,14 +174,7 @@ export class BetterUptime {
 
     async createChainObservationIncident(name: string, blocksBehind: number) {
         const identifier = `${name} ${IncidentType.CHAIN_OBSERVATION}`
-        let previousBlocksBehind = this.cache.get(identifier)
-
-        if (previousBlocksBehind === undefined) {
-            const incidents = await this.getIncidents(identifier, undefined, true)
-            const latestIncident = _.last(incidents)
-            previousBlocksBehind = latestIncident ? Number(/([0-9]+)/g.exec(latestIncident.attributes.cause)![1]) : 0
-            this.cache.set(identifier, previousBlocksBehind)
-        }
+        const previousBlocksBehind = this.cache.get(identifier) ?? 0
 
         if (blocksBehind > 2 * previousBlocksBehind) {
             await this.createIncident(
@@ -223,7 +193,8 @@ export class BetterUptime {
     async resolveIncidents(name: string, type: IncidentType) {
         if (config.nodeENV !== 'production') return
 
-        let incidents = await this.getIncidents(`${name} ${type}`, false, false)
+        const identifier = `${name} ${type}`
+        const incidents = await this.getIncidents(identifier, false, false)
 
         for (const incident of incidents) {
             await this.resolveIncident(incident.id)
@@ -371,7 +342,7 @@ export class BetterUptime {
     }
 
     async getIncidents(title?: string, resolved?: boolean, returnEarly: boolean = true): Promise<Array<Incident>> {
-        let response = await this.send('GET', 'incidents', {
+        let response = await this.send('GET', 'incidents?per_page=50', {
             from: '1970-01-01',
             to: moment().format('YYYY-MM-DD')
         })
@@ -383,7 +354,7 @@ export class BetterUptime {
             await log.debug(`${BetterUptime.name}:${this.getIncidents.name}: title='${title}', resolved='${resolved}', returnEarly='${returnEarly}', nextPageUrl=${nextPageUrl}`)
 
             if (nextPageUrl) {
-                response = await this.send('GET', 'incidents', undefined, nextPageUrl)
+                response = await this.send('GET', 'incidents?per_page=50', undefined, nextPageUrl)
             }
             incidents = _.union(incidents, _.filter(response.data.data, (incident) => {
                 const isResolved = incident.attributes.resolved_at != undefined
