@@ -93,8 +93,8 @@ new Cron('0 * * * * *', async () => {
     ])
 }).run()
 
-// Monitor chain observations every 10 minutes
-new Cron('0 */10 * * * *', async () => {
+// Monitor chain observations every 5 minutes
+new Cron('0 */5 * * * *', async () => {
     const thornode = _.find(nodes, (node) => {
         return node.constructor.name === Thornode.name
     }) as Thornode
