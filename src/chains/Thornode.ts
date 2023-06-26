@@ -284,16 +284,22 @@ export class Thornode extends Cosmos {
                 const chain = observedChain.chain.toUpperCase()
                 const observedHeight = observedChain.height
 
-                const latestObservedHeightForChain = _.max(_.map(activeNodes, (otherNode) => {
+                const latestObservedHeightsByActiveNodes = _.map(activeNodes, (otherNode) => {
                     return _.find(otherNode.observedChains, (observedChain) => {
                         return observedChain.chain.toUpperCase() === chain
                     })?.height ?? -1 // Could be undefined for newer nodes that haven't observed previous chains (e.g. Terra)
+                })
+                const latestObservedHeightsByCount = _.countBy(latestObservedHeightsByActiveNodes, (latestObservedHeight) => {
+                    return latestObservedHeight
+                })
+                const latestObservedHeightConsensus = Number(_.max(_.keys(latestObservedHeightsByCount), (key) => {
+                    return latestObservedHeightsByCount[key]
                 }))
 
                 // Alert if node is behind on chain observations
-                if (observedHeight < latestObservedHeightForChain) {
-                    const diff = latestObservedHeightForChain - observedHeight
-                    await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${numeral(diff).format('0')} blocks behind the latest observation of the network! (observedHeight = ${numeral(observedHeight).format('0,0')}, latestObservedHeightForChain = ${numeral(latestObservedHeightForChain).format('0,0')})`)
+                if (observedHeight < latestObservedHeightConsensus) {
+                    const diff = latestObservedHeightConsensus - observedHeight
+                    await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${numeral(diff).format('0')} blocks behind the latest observation of the network! (observedHeight = ${numeral(observedHeight).format('0,0')}, latestObservedHeightForChain = ${numeral(latestObservedHeightConsensus).format('0,0')})`)
 
                     await betterUptime.createChainObservationIncident(chain, diff)
                 } else {
