@@ -78,7 +78,7 @@ new Cron('0 * * * * *', async () => {
     })))
 }).run()
 
-// Monitor version, bond slash points & jailing every minute
+// Monitor version, bond slash points, jailing & chain observations every minute
 new Cron('0 * * * * *', async () => {
     const thornode = _.find(nodes, (node) => {
         return node.constructor.name === Thornode.name

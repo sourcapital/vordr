@@ -30,14 +30,14 @@ export class Thornode extends Cosmos {
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/ping`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.isUp.name}:ping: Node HTTP status code: ${nodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.isUp.name}:ping: '/thorchain/ping' status code: ${nodeResponse.status}`)
                 return false
             }
 
-            const nodePong = nodeResponse.data.ping
-            await log.debug(`${Thornode.name}:${this.isUp.name}: ping -> ${nodePong}`)
+            const pong = nodeResponse.data.ping
+            await log.debug(`${Thornode.name}:${this.isUp.name}: ping -> ${pong}`)
 
-            if (nodePong !== 'pong') {
+            if (pong !== 'pong') {
                 await log.error(`${Thornode.name}:${this.isUp.name}:ping: Node does not respond to 'ping' with 'pong'!`)
                 return false
             }
@@ -56,17 +56,15 @@ export class Thornode extends Cosmos {
         await log.info(`${Thornode.name}: Checking if node version is up-to-date ...`)
 
         try {
-            const nodeAddress = this.getAddress()
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorVersion.name}: HTTP status code: ${nodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.monitorVersion.name}: '/thorchain/nodes' status code: ${nodeResponse.status}`)
                 return
             }
 
-            // Try to find the node
-            const nodes = nodeResponse.data
-            const node = _.find(nodes, (node) => {
+            const nodeAddress = this.getAddress()
+            const node = _.find(nodeResponse.data, (node) => {
                 return node.node_address === nodeAddress
             })
 
@@ -79,13 +77,11 @@ export class Thornode extends Cosmos {
             const nodeVersion = node.version
 
             // Get the top version of the active nodes
-            const activeNodes = _.filter(nodes, (node) => {
+            const topVersion = _.max(_.map(_.filter(nodeResponse.data, (node) => {
                 return node.status.toLowerCase() === 'active'
-            })
-            const versions = _.map(activeNodes, (node) => {
+            }), (node) => {
                 return node.version
-            })
-            const topVersion = _.max(versions, (version) => {
+            }), (version) => {
                 return Number(version.replace(/\./g, ''))
             })
             await log.debug(`${Thornode.name}:${this.monitorVersion.name}: topVersion = ${topVersion}`)
@@ -111,18 +107,42 @@ export class Thornode extends Cosmos {
         await log.info(`${Thornode.name}: Monitoring bond ...`)
 
         try {
-            const nodeAddress = this.getAddress()
-            const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/node/${nodeAddress}`)
+            const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorBond.name}: Node HTTP status code: ${nodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.monitorBond.name}: '/thorchain/nodes' status code: ${nodeResponse.status}`)
                 return
             }
 
-            const bond = Number(nodeResponse.data.total_bond) / 1e8
-            const reward = Number(nodeResponse.data.current_award) / 1e8
+            const nodeAddress = this.getAddress()
+            const node = _.find(_.map(nodeResponse.data, (node) => {
+                return { // Map relevant node values
+                    address: node.node_address,
+                    bond: Number(node.total_bond / 1e8),
+                    reward: Number(node.current_award / 1e8)
+                }
+            }), (node) => {
+                return node.address === nodeAddress // Find node by address
+            })
 
-            await log.info(`${Thornode.name}:Bond: bond = ${numeral(bond).format('0')} | reward = ${numeral(reward).format('0')}`)
+            if (!node) {
+                await log.info(`${Thornode.name}:${this.monitorBond.name}: Node '${nodeAddress}' not bonded!`)
+                return
+            }
+
+            const activeNodes = _.sortBy(_.map(_.filter(nodeResponse.data, (node) => {
+                return node.status.toLowerCase() === 'active' // Include active nodes only
+            }), (node) => {
+                return {address: node.node_address, bond: Number(node.total_bond / 1e8)} // Map relevant node values
+            }), (node) => {
+                return node.bond // Sort by bond (ascending)
+            })
+
+            const bottomTwoThirdActiveNodes = activeNodes.slice(0, Math.floor(activeNodes.length * 2 / 3))
+            const nodeWithHighestBondInTheBottomTwoThirds = bottomTwoThirdActiveNodes[bottomTwoThirdActiveNodes.length - 1]
+            const maxEfficientBond = nodeWithHighestBondInTheBottomTwoThirds.bond
+
+            await log.info(`${Thornode.name}:Bond: bond = ${numeral(node.bond).format('0')}, reward = ${numeral(node.reward).format('0')}, maxEfficientBond = ${numeral(maxEfficientBond).format('0')}`)
         } catch (error) {
             await handleError(error)
         }
@@ -135,27 +155,19 @@ export class Thornode extends Cosmos {
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorSlashPoints.name}: Node HTTP status code: ${nodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.monitorSlashPoints.name}: '/thorchain/nodes' status code: ${nodeResponse.status}`)
                 return
             }
 
-            let activeNodes = _.filter(nodeResponse.data, (node) => {
-                return node.status.toLowerCase() === 'active'
-            })
-            activeNodes = _.map(activeNodes, (node) => {
-                return {
-                    address: node.node_address,
-                    slashPoints: node.slash_points
-                }
-            })
-            activeNodes = _.sortBy(activeNodes, (slashPoints) => {
-                return slashPoints.slashPoints
+            const activeNodes = _.sortBy(_.map(_.filter(nodeResponse.data, (node) => {
+                return node.status.toLowerCase() === 'active' // Include active nodes only
+            }), (node) => {
+                return {address: node.node_address, slashPoints: Number(node.slash_points)} // Map relevant node values
+            }), (node) => {
+                return node.slashPoints // Sort by bond (descending)
             }).reverse()
 
-            // Get the thornode's address
             const nodeAddress = this.getAddress()
-
-            // Try to find the node in the active nodes
             const node = _.find(activeNodes, (node) => {
                 return node.address === nodeAddress
             })
@@ -165,13 +177,9 @@ export class Thornode extends Cosmos {
                 return
             }
 
-            // Calculate min, max and worst top 10 threshold
-            const min = _.min(activeNodes, (node) => {
-                return node.slashPoints
-            }).slashPoints
-            const max = _.max(activeNodes, (node) => {
-                return node.slashPoints
-            }).slashPoints
+            // Calculate min, max and worst-top-10 threshold
+            const min = activeNodes[activeNodes.length - 1].slashPoints
+            const max = activeNodes[0].slashPoints
             const worstTop10Threshold = activeNodes[Math.floor(activeNodes.length / 10)].slashPoints
 
             // Calculate average
@@ -179,11 +187,10 @@ export class Thornode extends Cosmos {
             const average = sum / activeNodes.length
 
             // Calculate median
-            const sortedNodes = _.sortBy(activeNodes, (node) => node.slashPoints)
-            const mid = Math.floor(sortedNodes.length / 2)
-            const median = sortedNodes.length % 2 === 0 ? (sortedNodes[mid - 1].slashPoints + sortedNodes[mid].slashPoints) / 2 : sortedNodes[mid].slashPoints
+            const mid = Math.floor(activeNodes.length / 2)
+            const median = activeNodes.length % 2 === 0 ? (activeNodes[mid - 1].slashPoints + activeNodes[mid].slashPoints) / 2 : activeNodes[mid].slashPoints
 
-            await log.info(`${Thornode.name}:SlashPoints: ${numeral(node.slashPoints).format('0')} | network = ${numeral(min).format('0')} (min), ${numeral(median).format('0')} (median), ${numeral(average).format('0')} (average), ${numeral(worstTop10Threshold).format('0')} (worstTop10Threshold), ${numeral(max).format('0')} (max)`)
+            await log.info(`${Thornode.name}:SlashPoints: node = ${numeral(node.slashPoints).format('0')} | network = ${numeral(min).format('0')} (min), ${numeral(median).format('0')} (median), ${numeral(average).format('0')} (average), ${numeral(worstTop10Threshold).format('0')} (worstTop10Threshold), ${numeral(max).format('0')} (max)`)
 
             // Alert if node enters the worst top 10
             if (node.slashPoints > worstTop10Threshold) {
@@ -209,11 +216,11 @@ export class Thornode extends Cosmos {
             ])
 
             if (thorRpcNodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorJailing.name}: ThorRpc HTTP status code: ${thorRpcNodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.monitorJailing.name}: '/thorchain/node/' status code: ${thorRpcNodeResponse.status}`)
                 return
             }
             if (cosmosRpcNodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorJailing.name}: CosmosRpc HTTP status code: ${cosmosRpcNodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.monitorJailing.name}: '/status' status code: ${cosmosRpcNodeResponse.status}`)
                 return
             }
 
@@ -236,9 +243,9 @@ export class Thornode extends Cosmos {
             if (releaseHeight > currentHeight) {
                 const reason = jail.reason ?? 'unknown'
                 const diff = releaseHeight - currentHeight
-                await log.info(`${Thornode.name}:Jail: Node is jailed for ${numeral(diff).format('0')} more blocks! (releaseHeight = ${numeral(releaseHeight).format('0,0')}, reason = '${reason}')`)
+                await log.info(`${Thornode.name}:Jail: Node is jailed for ${numeral(diff).format('0')} blocks! (until = ${numeral(releaseHeight).format('0')}, reason = '${reason}')`)
 
-                await betterUptime.createJailIncident(Thornode.name, reason, releaseHeight)
+                await betterUptime.createJailIncident(Thornode.name, diff, releaseHeight)
             } else {
                 await betterUptime.resolveIncidents(Thornode.name, IncidentType.JAIL)
             }
@@ -254,24 +261,17 @@ export class Thornode extends Cosmos {
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorChainObservations.name}: Node HTTP status code: ${nodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.monitorChainObservations.name}: '/thorchain/nodes' status code: ${nodeResponse.status}`)
                 return
             }
 
-            let activeNodes = _.filter(nodeResponse.data, (node) => {
-                return node.status.toLowerCase() === 'active'
-            })
-            activeNodes = _.map(activeNodes, (node) => {
-                return {
-                    address: node.node_address,
-                    observedChains: node.observe_chains
-                }
+            const activeNodes = _.map(_.filter(nodeResponse.data, (node) => {
+                return node.status.toLowerCase() === 'active' // Include active nodes only
+            }), (node) => {
+                return {address: node.node_address, observedChains: node.observe_chains} // Map relevant node values
             })
 
-            // Get the thornode's address
             const nodeAddress = this.getAddress()
-
-            // Try to find the node in the active nodes
             const node = _.find(activeNodes, (node) => {
                 return node.address === nodeAddress
             })
@@ -281,12 +281,12 @@ export class Thornode extends Cosmos {
                 return
             }
 
-            for(const observedChain of node.observedChains) {
+            for (const observedChain of node.observedChains) {
                 const chain = observedChain.chain.toUpperCase()
                 const observedHeight = observedChain.height
 
-                const latestObservedHeightsByActiveNodes = _.map(activeNodes, (otherNode) => {
-                    return _.find(otherNode.observedChains, (observedChain) => {
+                const latestObservedHeightsByActiveNodes = _.map(activeNodes, (node) => {
+                    return _.find(node.observedChains, (observedChain) => {
                         return observedChain.chain.toUpperCase() === chain
                     })?.height ?? -1 // Could be undefined for newer nodes that haven't observed previous chains (e.g. Terra)
                 })
@@ -300,7 +300,7 @@ export class Thornode extends Cosmos {
                 // Alert if node is behind on chain observations only every 10 minutes, but resolve every minute
                 if (observedHeight < latestObservedHeightConsensus && moment().minutes() % 10 === 0) {
                     const diff = latestObservedHeightConsensus - observedHeight
-                    await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${numeral(diff).format('0')} blocks behind the latest observation of the network! (observedHeight = ${numeral(observedHeight).format('0,0')}, latestObservedHeightForChain = ${numeral(latestObservedHeightConsensus).format('0,0')})`)
+                    await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${numeral(diff).format('0')} blocks behind the majority observation of the network! (observedHeight = ${numeral(observedHeight).format('0')}, latestObservedHeightConsensus = ${numeral(latestObservedHeightConsensus).format('0')})`)
 
                     await betterUptime.createChainObservationIncident(chain, diff)
                 } else {

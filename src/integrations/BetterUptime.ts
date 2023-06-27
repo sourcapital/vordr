@@ -140,7 +140,7 @@ export class BetterUptime {
         if (restartCount > previousRestarts) {
             await this.createIncident(
                 `${name} ${IncidentType.RESTART}`,
-                `${name} pod restarted! (total: ${numeral(restartCount).format('0')})`
+                `${name} pod restarted! (total: ${numeral(restartCount).format('0,0')})`
             )
             this.cache.set(identifier, restartCount)
         }
@@ -153,20 +153,20 @@ export class BetterUptime {
         if (slashPoints > threshold && slashPoints > 2 * previousSlashPoints) {
             await this.createIncident(
                 `${name} ${IncidentType.SLASH_POINTS}`,
-                `${name} has accumulated ${numeral(slashPoints).format('0')} slash points!`
+                `${name} has accumulated ${numeral(slashPoints).format('0,0')} slash points!`
             )
             this.cache.set(identifier, slashPoints)
         }
     }
 
-    async createJailIncident(name: string, reason: string, releaseHeight: number) {
+    async createJailIncident(name: string, numberOfblocks: number, releaseHeight: number) {
         const identifier = `${name} ${IncidentType.JAIL}`
         const previousReleaseHeight = this.cache.get(identifier) ?? 0
 
         if (releaseHeight > previousReleaseHeight) {
             await this.createIncident(
                 `${name} ${IncidentType.JAIL}`,
-                `${name} has been jailed! (releaseHeight = ${numeral(releaseHeight).format('0')}, reason = '${reason}')`
+                `${name} has been jailed for ${numeral(numberOfblocks).format('0,0')} blocks! (until: ${numeral(releaseHeight).format('0,0')})`
             )
             this.cache.set(identifier, releaseHeight)
         }
@@ -179,7 +179,7 @@ export class BetterUptime {
         if (blocksBehind > 2 * previousBlocksBehind) {
             await this.createIncident(
                 `${name} ${IncidentType.CHAIN_OBSERVATION}`,
-                `${name} is ${numeral(blocksBehind).format('0')} blocks behind the latest observation of the network!`
+                `${name} is ${numeral(blocksBehind).format('0,0')} blocks behind the majority observation of the network!`
             )
             this.cache.set(identifier, blocksBehind)
         }
