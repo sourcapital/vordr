@@ -1,5 +1,6 @@
 import axios from 'axios'
 import _ from 'underscore'
+import moment from 'moment'
 import numeral from 'numeral'
 import {config} from '../config.js'
 import {Chain, Cosmos} from './Cosmos.js'
@@ -296,8 +297,8 @@ export class Thornode extends Cosmos {
                     return latestObservedHeightsByCount[key]
                 }))
 
-                // Alert if node is behind on chain observations
-                if (observedHeight < latestObservedHeightConsensus) {
+                // Alert if node is behind on chain observations only every 10 minutes, but resolve every minute
+                if (observedHeight < latestObservedHeightConsensus && moment().minutes() % 10 === 0) {
                     const diff = latestObservedHeightConsensus - observedHeight
                     await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${numeral(diff).format('0')} blocks behind the latest observation of the network! (observedHeight = ${numeral(observedHeight).format('0,0')}, latestObservedHeightForChain = ${numeral(latestObservedHeightConsensus).format('0,0')})`)
 

@@ -15,7 +15,6 @@ import {BitcoinCash} from './chains/BitcoinCash.js'
 import {Dogecoin} from './chains/Dogecoin.js'
 import {Cosmos} from './chains/Cosmos.js'
 import {Avalanche} from './chains/Avalanche.js'
-import {BinanceSmartChain} from './chains/BinanceSmartChain.js'
 
 // Setup globals
 global.sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
@@ -89,17 +88,7 @@ new Cron('0 * * * * *', async () => {
         thornode.monitorVersion(),
         thornode.monitorBond(),
         thornode.monitorSlashPoints(),
-        thornode.monitorJailing()
-    ])
-}).run()
-
-// Monitor chain observations every 5 minutes
-new Cron('0 */5 * * * *', async () => {
-    const thornode = _.find(nodes, (node) => {
-        return node.constructor.name === Thornode.name
-    }) as Thornode
-
-    await Promise.all([
+        thornode.monitorJailing(),
         thornode.monitorChainObservations()
     ])
 }).run()
