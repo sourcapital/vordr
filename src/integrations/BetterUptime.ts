@@ -84,16 +84,15 @@ export class BetterUptime {
 
         new Cron(schedule, async () => {
             const incidents = await this.getIncidents(undefined, true, false)
+            const incidentsToDelete = incidents.slice(50) // Get all incidents except the 50 latest
 
-            for (const incident of incidents) {
-                const daysInAge = moment().diff(moment(incident.attributes.started_at), 'days')
-
-                if (daysInAge > 7) {
-                    await this.deleteIncident(incident.id)
-                }
+            for (const incident of incidentsToDelete) {
+                await this.deleteIncident(incident.id)
             }
 
-            await log.info(`${BetterUptime.name}: Cleaned!`)
+            if (incidentsToDelete.length > 0) {
+                await log.info(`${BetterUptime.name}: Cleaned up ${incidentsToDelete.length} incidents!`)
+            }
         }).run()
     }
 

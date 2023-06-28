@@ -55,7 +55,7 @@ if (config.nodeENV === 'production') {
 }
 
 // Setup BetterUptime cleanup
-await betterUptime.setupCleanup('0 0 0 * * *') // once per day
+await betterUptime.setupCleanup('0 0 * * * *') // once per hour
 
 // Setup heartbeats in correct order
 await log.info('Initializing heartbeats ...')
