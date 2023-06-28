@@ -49,8 +49,6 @@ export class Kubernetes {
     async setupRestartMonitoring(schedule: string) {
         if (config.nodeENV !== 'production') return
 
-        await log.info(`${Kubernetes.name}: Setup pod restart monitoring ...`)
-
         new Cron(schedule, async () => {
             const pods = await this.getPods('thornode')
             await Promise.all(_.map(pods, (pod) => {

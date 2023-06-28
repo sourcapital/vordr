@@ -54,21 +54,21 @@ if (config.nodeENV === 'production') {
     ]
 }
 
-// Setup BetterUptime cleanup
-await betterUptime.setupCleanup('0 0 * * * *') // once per hour
-
-// Setup heartbeats in correct order
-await log.info('Initializing heartbeats ...')
+// Setup BetterUptime heartbeats (in correct sequence)
+await log.info('Setup BetterUptime heartbeats ...')
 for (const node of nodes) await node.initHeartbeats()
-
-// Setup kubernetes pod monitoring
+// Setup BetterUptime incident cleanup
+await log.info('Setup BetterUptime incident cleanup ...')
+await betterUptime.setupCleanup('0 0 * * * *') // once per hour
+// Setup k8s pod restart monitoring
+await log.info('Setup k8s pod restart monitoring ...')
 await kubernetes.setupRestartMonitoring('0 * * * * *') // every minute
-
-// Setup Loki log stream
-await log.info('Initializing Loki stream ...')
+// Connect to Loki
+await log.info('Setup Loki connection ...')
 await loki.connect()
 
 // Run node health monitoring every minute
+await log.info('Setup chain daemon monitoring ...')
 new Cron('0 * * * * *', async () => {
     await Promise.all(_.flatten(_.map(nodes, (node) => {
         return [
@@ -79,6 +79,7 @@ new Cron('0 * * * * *', async () => {
 }).run()
 
 // Monitor version, bond slash points, jailing & chain observations every minute
+await log.info('Setup THORNode monitoring ...')
 new Cron('0 * * * * *', async () => {
     const thornode = _.find(nodes, (node) => {
         return node.constructor.name === Thornode.name

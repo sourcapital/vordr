@@ -80,8 +80,6 @@ export class BetterUptime {
     async setupCleanup(schedule: string) {
         if (config.nodeENV !== 'production') return
 
-        await log.info(`${BetterUptime.name}: Setup cleanup ...`)
-
         new Cron(schedule, async () => {
             const incidents = await this.getIncidents(undefined, true, false)
             const incidentsToDelete = incidents.slice(50) // Get all incidents except the 50 latest
@@ -225,7 +223,7 @@ export class BetterUptime {
         let heartbeats = await this.getHeartbeats()
 
         for (const heartbeat of heartbeats) {
-            await log.debug(`${BetterUptime.name}: Deleting heartbeat: '${heartbeat.attributes.name}'`)
+            await log.info(`${BetterUptime.name}: Deleting heartbeat: '${heartbeat.attributes.name}'`)
             await this.send('DELETE', `heartbeats/${heartbeat.id}`)
         }
     }
@@ -234,7 +232,7 @@ export class BetterUptime {
         const heartbeatGroups = await this.getHeartbeatGroups()
 
         for (const heartbeatGroup of heartbeatGroups) {
-            await log.debug(`${BetterUptime.name}: Deleting heartbeat group: '${heartbeatGroup.attributes.name}'`)
+            await log.info(`${BetterUptime.name}: Deleting heartbeat group: '${heartbeatGroup.attributes.name}'`)
             await this.send('DELETE', `heartbeat-groups/${heartbeatGroup.id}`)
         }
     }
@@ -271,7 +269,7 @@ export class BetterUptime {
         const group = await this.getHeartbeatGroup(name)
 
         if (!heartbeat) {
-            await log.debug(`${BetterUptime.name}: Creating new heartbeat: '${name} ${type}'`)
+            await log.info(`${BetterUptime.name}: Creating new heartbeat: '${name} ${type}'`)
 
             // Create new heartbeat
             const response = await this.send('POST', 'heartbeats', {
@@ -312,7 +310,7 @@ export class BetterUptime {
         }))
 
         if (!group) {
-            await log.debug(`${BetterUptime.name}: Creating new heartbeat group: '${name}'`)
+            await log.info(`${BetterUptime.name}: Creating new heartbeat group: '${name}'`)
 
             // Create new heartbeat group
             const response = await this.send('POST', 'heartbeat-groups', {

@@ -24,13 +24,13 @@ export class Thornode extends Cosmos {
     }
 
     async isUp(): Promise<boolean> {
-        await log.info(`${Thornode.name}: Checking if the node is up ...`)
+        await log.debug(`${Thornode.name}: Checking if the node is up ...`)
 
         try {
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/ping`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.isUp.name}:ping: '/thorchain/ping' status code: ${nodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.isUp.name}: Node HTTP status code: ${nodeResponse.status}`)
                 return false
             }
 
@@ -38,7 +38,7 @@ export class Thornode extends Cosmos {
             await log.debug(`${Thornode.name}:${this.isUp.name}: ping -> ${pong}`)
 
             if (pong !== 'pong') {
-                await log.error(`${Thornode.name}:${this.isUp.name}:ping: Node does not respond to 'ping' with 'pong'!`)
+                await log.error(`${Thornode.name}:${this.isUp.name}: Node does not respond to 'ping' with 'pong'!`)
                 return false
             }
         } catch (error) {
@@ -53,13 +53,13 @@ export class Thornode extends Cosmos {
     }
 
     async monitorVersion() {
-        await log.info(`${Thornode.name}: Checking if node version is up-to-date ...`)
+        await log.debug(`${Thornode.name}: Checking if node version is up-to-date ...`)
 
         try {
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorVersion.name}: '/thorchain/nodes' status code: ${nodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.monitorVersion.name}: Node HTTP status code: ${nodeResponse.status}`)
                 return
             }
 
@@ -104,13 +104,13 @@ export class Thornode extends Cosmos {
     }
 
     async monitorBond() {
-        await log.info(`${Thornode.name}: Monitoring bond ...`)
+        await log.debug(`${Thornode.name}: Monitoring bond ...`)
 
         try {
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorBond.name}: '/thorchain/nodes' status code: ${nodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.monitorBond.name}: Node HTTP status code: ${nodeResponse.status}`)
                 return
             }
 
@@ -126,7 +126,7 @@ export class Thornode extends Cosmos {
             })
 
             if (!node) {
-                await log.info(`${Thornode.name}:${this.monitorBond.name}: Node '${nodeAddress}' not bonded!`)
+                await log.warn(`${Thornode.name}:${this.monitorBond.name}: Node '${nodeAddress}' not bonded!`)
                 return
             }
 
@@ -142,20 +142,20 @@ export class Thornode extends Cosmos {
             const nodeWithHighestBondInTheBottomTwoThirds = bottomTwoThirdActiveNodes[bottomTwoThirdActiveNodes.length - 1]
             const maxEfficientBond = nodeWithHighestBondInTheBottomTwoThirds.bond
 
-            await log.info(`${Thornode.name}:Bond: bond = ${numeral(node.bond).format('0')}, reward = ${numeral(node.reward).format('0')}, maxEfficientBond = ${numeral(maxEfficientBond).format('0')}`)
+            await log.info(`${Thornode.name}:Bond: bond = ${numeral(node.bond).format('0,0')}; reward = ${numeral(node.reward).format('0,0')}; maxEfficientBond = ${numeral(maxEfficientBond).format('0,0')}`)
         } catch (error) {
             await handleError(error)
         }
     }
 
     async monitorSlashPoints() {
-        await log.info(`${Thornode.name}: Monitoring slash points ...`)
+        await log.debug(`${Thornode.name}: Monitoring slash points ...`)
 
         try {
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorSlashPoints.name}: '/thorchain/nodes' status code: ${nodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.monitorSlashPoints.name}: Node HTTP status code: ${nodeResponse.status}`)
                 return
             }
 
@@ -173,7 +173,7 @@ export class Thornode extends Cosmos {
             })
 
             if (!node) {
-                await log.info(`${Thornode.name}:${this.monitorSlashPoints.name}: Node is not active. Skipping slash points monitoring ...`)
+                await log.warn(`${Thornode.name}:${this.monitorSlashPoints.name}: Node is not active. Skipping slash points monitoring ...`)
                 return
             }
 
@@ -190,7 +190,7 @@ export class Thornode extends Cosmos {
             const mid = Math.floor(activeNodes.length / 2)
             const median = activeNodes.length % 2 === 0 ? (activeNodes[mid - 1].slashPoints + activeNodes[mid].slashPoints) / 2 : activeNodes[mid].slashPoints
 
-            await log.info(`${Thornode.name}:SlashPoints: node = ${numeral(node.slashPoints).format('0')} | network = ${numeral(min).format('0')} (min), ${numeral(median).format('0')} (median), ${numeral(average).format('0')} (average), ${numeral(worstTop10Threshold).format('0')} (worstTop10Threshold), ${numeral(max).format('0')} (max)`)
+            await log.info(`${Thornode.name}:SlashPoints: node = ${numeral(node.slashPoints).format('0,0')}; network = ${numeral(min).format('0,0')} (min), ${numeral(median).format('0,0')} (median), ${numeral(average).format('0,0')} (average), ${numeral(worstTop10Threshold).format('0,0')} (worstTop10Threshold), ${numeral(max).format('0,0')} (max)`)
 
             // Alert if node enters the worst top 10
             if (node.slashPoints > worstTop10Threshold) {
@@ -204,7 +204,7 @@ export class Thornode extends Cosmos {
     }
 
     async monitorJailing() {
-        await log.info(`${Thornode.name}: Checking if node has been jailed ...`)
+        await log.debug(`${Thornode.name}: Checking if node has been jailed ...`)
 
         try {
             const nodeAddress = this.getAddress()
@@ -216,11 +216,11 @@ export class Thornode extends Cosmos {
             ])
 
             if (thorRpcNodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorJailing.name}: '/thorchain/node/' status code: ${thorRpcNodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.monitorJailing.name}: ThorRpc HTTP status code: ${thorRpcNodeResponse.status}`)
                 return
             }
             if (cosmosRpcNodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorJailing.name}: '/status' status code: ${cosmosRpcNodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.monitorJailing.name}: CosmosRpc HTTP status code: ${cosmosRpcNodeResponse.status}`)
                 return
             }
 
@@ -228,11 +228,11 @@ export class Thornode extends Cosmos {
             const jail = thorRpcNodeResponse.data.jail
 
             if (status !== 'active') {
-                await log.info(`${Thornode.name}:${this.monitorJailing.name}: Node is not active. Skipping jail monitoring ...`)
+                await log.warn(`${Thornode.name}:${this.monitorJailing.name}: Node is not active. Skipping jail monitoring ...`)
                 return
             }
             if (!jail.release_height) {
-                await log.info(`${Thornode.name}:${this.monitorJailing.name}: Node is not jailed. Skipping jail monitoring ...`)
+                await log.warn(`${Thornode.name}:${this.monitorJailing.name}: Node is not jailed. Skipping jail monitoring ...`)
                 return
             }
 
@@ -243,7 +243,7 @@ export class Thornode extends Cosmos {
             if (releaseHeight > currentHeight) {
                 const reason = jail.reason ?? 'unknown'
                 const diff = releaseHeight - currentHeight
-                await log.info(`${Thornode.name}:Jail: Node is jailed for ${numeral(diff).format('0')} blocks! (until = ${numeral(releaseHeight).format('0')}, reason = '${reason}')`)
+                await log.info(`${Thornode.name}:Jail: Node is jailed for ${numeral(diff).format('0,0')} blocks! (until = ${numeral(releaseHeight).format('0,0')}, reason = '${reason}')`)
 
                 await betterUptime.createJailIncident(Thornode.name, diff, releaseHeight)
             } else {
@@ -255,13 +255,13 @@ export class Thornode extends Cosmos {
     }
 
     async monitorChainObservations() {
-        await log.info(`${Thornode.name}: Monitoring chain observations ...`)
+        await log.debug(`${Thornode.name}: Monitoring chain observations ...`)
 
         try {
             const nodeResponse = await axios.get(`${this.thorRpcUrl}/thorchain/nodes`)
 
             if (nodeResponse.status !== 200) {
-                await log.error(`${Thornode.name}:${this.monitorChainObservations.name}: '/thorchain/nodes' status code: ${nodeResponse.status}`)
+                await log.error(`${Thornode.name}:${this.monitorChainObservations.name}: Node HTTP status code: ${nodeResponse.status}`)
                 return
             }
 
@@ -277,7 +277,7 @@ export class Thornode extends Cosmos {
             })
 
             if (!node) {
-                await log.info(`${Thornode.name}:${this.monitorChainObservations.name}: Node is not active. Skipping chain observation monitoring ...`)
+                await log.warn(`${Thornode.name}:${this.monitorChainObservations.name}: Node is not active. Skipping chain observation monitoring ...`)
                 return
             }
 
@@ -300,7 +300,7 @@ export class Thornode extends Cosmos {
                 // Alert if node is behind on chain observations only every 10 minutes, but resolve every minute
                 if (observedHeight < latestObservedHeightConsensus && moment().minutes() % 10 === 0) {
                     const diff = latestObservedHeightConsensus - observedHeight
-                    await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${numeral(diff).format('0')} blocks behind the majority observation of the network! (observedHeight = ${numeral(observedHeight).format('0')}, latestObservedHeightConsensus = ${numeral(latestObservedHeightConsensus).format('0')})`)
+                    await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${numeral(diff).format('0,0')} blocks behind the majority observation of the network! (observedHeight = ${numeral(observedHeight).format('0,0')}, latestObservedHeightConsensus = ${numeral(latestObservedHeightConsensus).format('0,0')})`)
 
                     await betterUptime.createChainObservationIncident(chain, diff)
                 } else {
