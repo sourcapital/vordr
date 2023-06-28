@@ -66,5 +66,8 @@ spec:
               value: '{LOGTAIL_SOURCE_TOKEN}'
           resources:
             limits:
-              cpu: '1'
-              memory: 1Gi
+              cpu: 0.2
+              memory: 256Mi
+            requests:
+              cpu: 0.2
+              memory: 256Mi
