@@ -401,6 +401,7 @@ export class BetterUptime {
                     await log.error(`${BetterUptime.name}:${this.send.name}: HTTP status code: ${response.status}`)
                 }
             } catch (error) {
+                await handleError(error)
                 await sleep(100)
             }
         }
