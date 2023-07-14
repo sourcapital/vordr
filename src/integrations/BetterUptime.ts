@@ -81,8 +81,10 @@ export class BetterUptime {
         if (config.nodeENV !== 'production') return
 
         new Cron(schedule, async () => {
-            const incidents = await this.getIncidents(undefined, true, false)
-            const incidentsToDelete = incidents.slice(50) // Get all incidents except the 50 latest
+            const incidents = await betterUptime.getIncidents(undefined, true, false)
+            const incidentsToDelete = _.sortBy(incidents, (incident) => {
+                return incident.attributes.started_at
+            }).reverse().slice(50) // Get all incidents except the latest 50
 
             for (const incident of incidentsToDelete) {
                 await this.deleteIncident(incident.id)
