@@ -54,10 +54,10 @@
   dependencies:
     "@logtail/types" "^0.4.0"
 
-"@logtail/types@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@logtail/types/-/types-0.4.0.tgz#39c28e08f805657c70107071dc166866153563a8"
-  integrity sha512-2CR3w7Xf5rKWbUlgiaBKeVrqWuWnVBz0Ymycw/gYwupVI0fb6Ameid9fHfeM5LI/gbIO3ZTIMADlA0FvFbuXMQ==
+"@logtail/types@^0.4.0", "@logtail/types@^0.4.3":
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/@logtail/types/-/types-0.4.3.tgz#c1659d24be09325e74aa123c870519bdba86f571"
+  integrity sha512-vBuDVWhD2gyRgEbZzWss1Esx5aKup2V+4Io72xhHNhyFmZv81IrCthVGK3EpiO7UA9bm8ip8o0UAx6+X8Rw2EA==
   dependencies:
     js "^0.1.0"
 
