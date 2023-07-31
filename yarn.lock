@@ -246,10 +246,10 @@ core-util-is@1.0.2:
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
   integrity sha512-3lqz5YjWTYnW6dlDa5TLaTCcShfar1e40rmcJVwCBJC6mWlFuj0eCHIElmG1g5kyuJ/GD+8Wn4FFCcz4gJPfaQ==
 
-cron@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/cron/-/cron-2.3.0.tgz#20df6da18d4f7d2f8937def2eb5fc0d1a320c526"
-  integrity sha512-ZN5HP8zDY41sJolMsbc+GksRATcbvkPKF5wR/qc8FrV4NBVi9ORQa1HmYa5GydaysUB80X9XpRlRkooa5uEtTA==
+cron@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/cron/-/cron-2.4.0.tgz#bdb2fcf896c072ba9dbc2f932ccd6daf3ad243b5"
+  integrity sha512-Cx77ic1TyIAtUggr0oAhtS8MLzPBUqGNIvdDM7jE3oFIxfe8LXWI9q3iQN/H2CebAiMir53LQKWOhEKnzkJTAQ==
   dependencies:
     luxon "^3.2.1"
 
