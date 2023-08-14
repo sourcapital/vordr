@@ -13,6 +13,7 @@ A monitoring application for THORNodes.
 - Slash points are monitored every minute
 - Jailing is monitored every minute
 - Chain observations are monitored every 10 minutes
+- Supports multiple nodes
 
 ## Supported Chains
 
