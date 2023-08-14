@@ -102,15 +102,16 @@ export class BetterUptime {
         const existingHeartbeats = await this.getHeartbeats()
 
         for (const type of types) {
+            const identifier = `${name} ${type} (${config.thornodeAddress!.slice(-4)})`
             const exists = _.find(existingHeartbeats, (existingHeartbeat) => {
-                return existingHeartbeat.attributes.name === `${name} ${type}`
+                return existingHeartbeat.attributes.name === identifier
             })
 
             if (!exists) {
                 // Create new heartbeat
                 await this.getHeartbeat(name, type)
             } else {
-                await log.debug(`${BetterUptime.name}: Heartbeat already created: '${name} ${type}'`)
+                await log.debug(`${BetterUptime.name}: Heartbeat already created: '${identifier}'`)
             }
         }
     }
@@ -123,7 +124,7 @@ export class BetterUptime {
             const response = await axios.get(heartbeat.attributes.url)
 
             if (response.status === 200) {
-                await log.info(`Heartbeat:${name} ${type} ❤️`)
+                await log.info(`Heartbeat:${heartbeat.attributes.name} ❤️`)
             } else {
                 await log.error(`${BetterUptime.name}:${this.sendHeartbeat.name}: HTTP status code: ${response.status}`)
             }
@@ -133,12 +134,12 @@ export class BetterUptime {
     }
 
     async createRestartIncident(name: string, restartCount: number) {
-        const identifier = `${name} ${IncidentType.RESTART}`
+        const identifier = `${name} ${IncidentType.RESTART} (${config.thornodeAddress!.slice(-4)})`
         const previousRestarts = this.cache.get(identifier) ?? 0
 
         if (restartCount > previousRestarts) {
             await this.createIncident(
-                `${name} ${IncidentType.RESTART}`,
+                `${identifier}`,
                 `${name} pod restarted! (total: ${numeral(restartCount).format('0,0')})`
             )
             this.cache.set(identifier, restartCount)
@@ -146,12 +147,12 @@ export class BetterUptime {
     }
 
     async createSlashPointIncident(name: string, slashPoints: number, threshold: number) {
-        const identifier = `${name} ${IncidentType.SLASH_POINTS}`
+        const identifier = `${name} ${IncidentType.SLASH_POINTS} (${config.thornodeAddress!.slice(-4)})`
         const previousSlashPoints = this.cache.get(identifier) ?? 0
 
         if (slashPoints > threshold && slashPoints > 2 * previousSlashPoints) {
             await this.createIncident(
-                `${name} ${IncidentType.SLASH_POINTS}`,
+                `${identifier}`,
                 `${name} has accumulated ${numeral(slashPoints).format('0,0')} slash points!`
             )
             this.cache.set(identifier, slashPoints)
@@ -159,12 +160,12 @@ export class BetterUptime {
     }
 
     async createJailIncident(name: string, numberOfblocks: number, releaseHeight: number) {
-        const identifier = `${name} ${IncidentType.JAIL}`
+        const identifier = `${name} ${IncidentType.JAIL} (${config.thornodeAddress!.slice(-4)})`
         const previousReleaseHeight = this.cache.get(identifier) ?? 0
 
         if (releaseHeight > previousReleaseHeight) {
             await this.createIncident(
-                `${name} ${IncidentType.JAIL}`,
+                `${identifier}`,
                 `${name} has been jailed for ${numeral(numberOfblocks).format('0,0')} blocks! (until: ${numeral(releaseHeight).format('0,0')})`
             )
             this.cache.set(identifier, releaseHeight)
@@ -172,12 +173,12 @@ export class BetterUptime {
     }
 
     async createChainObservationIncident(name: string, blocksBehind: number) {
-        const identifier = `${name} ${IncidentType.CHAIN_OBSERVATION}`
+        const identifier = `${name} ${IncidentType.CHAIN_OBSERVATION} (${config.thornodeAddress!.slice(-4)})`
         const previousBlocksBehind = this.cache.get(identifier) ?? 0
 
         if (blocksBehind > 2 * previousBlocksBehind) {
             await this.createIncident(
-                `${name} ${IncidentType.CHAIN_OBSERVATION}`,
+                `${identifier}`,
                 `${name} is ${numeral(blocksBehind).format('0,0')} blocks behind the majority observation of the network!`
             )
             this.cache.set(identifier, blocksBehind)
@@ -192,7 +193,7 @@ export class BetterUptime {
     async resolveIncidents(name: string, type: IncidentType) {
         if (config.nodeENV !== 'production') return
 
-        const identifier = `${name} ${type}`
+        const identifier = `${name} ${type} (${config.thornodeAddress!.slice(-4)})`
         const incidents = await this.getIncidents(identifier, false, false)
 
         for (const incident of incidents) {
@@ -206,7 +207,8 @@ export class BetterUptime {
     }
 
     async deleteIncidents(name: string, type: IncidentType) {
-        let incidents = await this.getIncidents(`${name} ${type}`, undefined, false)
+        const identifier = `${name} ${type} (${config.thornodeAddress!.slice(-4)})`
+        let incidents = await this.getIncidents(identifier, undefined, false)
 
         for (const incident of incidents) {
             await this.deleteIncident(incident.id)
@@ -263,19 +265,21 @@ export class BetterUptime {
     }
 
     private async getHeartbeat(name: string, type: HeartbeatType): Promise<Heartbeat> {
+        const identifier = `${name} ${type} (${config.thornodeAddress!.slice(-4)})`
+
         const heartbeats = await this.getHeartbeats()
         let heartbeat = _.first(_.filter(heartbeats, (heartbeat) => {
-            return heartbeat.attributes.name === `${name} ${type}`
+            return heartbeat.attributes.name === identifier
         }))
 
         const group = await this.getHeartbeatGroup(name)
 
         if (!heartbeat) {
-            await log.info(`${BetterUptime.name}: Creating new heartbeat: '${name} ${type}'`)
+            await log.info(`${BetterUptime.name}: Creating new heartbeat: '${identifier}'`)
 
             // Create new heartbeat
             const response = await this.send('POST', 'heartbeats', {
-                name: `${name} ${type}`,
+                name: identifier,
                 period: 60, // 1min
                 grace: 300, // 5min
                 heartbeat_group_id: group.id,
@@ -306,17 +310,19 @@ export class BetterUptime {
     }
 
     private async getHeartbeatGroup(name: string): Promise<HeartbeatGroup> {
+        const identifier = `${name} (${config.thornodeAddress!.slice(-4)})`
+
         const groups = await this.getHeartbeatGroups()
         let group = _.first(_.filter(groups, (group) => {
-            return group.attributes.name === name
+            return group.attributes.name === identifier
         }))
 
         if (!group) {
-            await log.info(`${BetterUptime.name}: Creating new heartbeat group: '${name}'`)
+            await log.info(`${BetterUptime.name}: Creating new heartbeat group: '${identifier}'`)
 
             // Create new heartbeat group
             const response = await this.send('POST', 'heartbeat-groups', {
-                name: name
+                name: identifier
             })
             group = response.data.data as HeartbeatGroup
         }
