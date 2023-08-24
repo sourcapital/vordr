@@ -15,6 +15,7 @@ import {BitcoinCash} from './chains/BitcoinCash.js'
 import {Dogecoin} from './chains/Dogecoin.js'
 import {Cosmos} from './chains/Cosmos.js'
 import {Avalanche} from './chains/Avalanche.js'
+import {BinanceSmartChain} from './chains/BinanceSmartChain.js'
 
 // Setup globals
 global.sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
@@ -37,7 +38,7 @@ if (config.nodeENV === 'production') {
         new Dogecoin('http://thorchain:password@dogecoin-daemon.thornode:22555'),
         new Cosmos('http://gaia-daemon.thornode:26657'),
         new Avalanche('http://avalanche-daemon.thornode:9650/ext/bc/C/rpc'),
-        // new BinanceSmartChain('http://binance-smart-daemon.thornode:8545')
+        new BinanceSmartChain('http://binance-smart-daemon.thornode:8545')
     ]
 } else {
     nodes = [
@@ -50,7 +51,7 @@ if (config.nodeENV === 'production') {
         new Dogecoin('https://thorchain:password@dogecoin.ninerealms.com'),
         new Cosmos('https://gaia.ninerealms.com'),
         new Avalanche('https://avalanche.ninerealms.com/ext/bc/C/rpc'),
-        // new BinanceSmartChain('https://binance-smart.ninerealms.com')
+        new BinanceSmartChain('https://binance-smart.ninerealms.com')
     ]
 }
 
