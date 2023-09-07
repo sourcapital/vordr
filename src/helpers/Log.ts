@@ -27,9 +27,8 @@ export class Log {
         if (config.nodeENV === 'production') await this.log?.warn(message)
     }
 
-    async error(message: string, raise: boolean = false, printToConsole: boolean = true) {
+    async error(message: string, printToConsole: boolean = true) {
         if (printToConsole) console.error(message)
         if (config.nodeENV === 'production') await this.log?.error(message)
-        if (raise) throw new Error(message)
     }
 }

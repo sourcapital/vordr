@@ -1,10 +1,10 @@
-export const handleError = async (error: unknown, raise: boolean = false) => {
+export const handleError = async (error: unknown) => {
     if (error instanceof Error) {
-        await log.error(error.stack ? error.stack : error.message, raise)
+        await log.error(error.stack ? error.stack : error.message)
     } else if (typeof error === 'string') {
-        await log.error(error.toUpperCase(), raise)
+        await log.error(error.toUpperCase())
     } else {
         console.log(error)
-        await log.error('Unkown error! Please check the logs.', raise)
+        await log.error('Unkown error! Please check the logs.')
     }
 }
