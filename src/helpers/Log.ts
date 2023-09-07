@@ -16,6 +16,8 @@ export class Log {
     }
 
     async info(message: string, printToConsole: boolean = true) {
+        if (config.nodeENV === 'production') return // No info logs in production
+
         if (printToConsole) console.info(message)
         if (config.nodeENV === 'production') await this.log?.info(message)
     }
