@@ -69,10 +69,12 @@ export class Loki {
 
                     switch (logLevel) {
                         case 'debug':
-                            await log.debug(`${prefix}: ${message}`, false)
+                            // Do not forward debug logs
+                            // await log.debug(`${prefix}: ${message}`, false)
                             break
                         case 'info':
-                            await log.info(`${prefix}: ${message}`, false)
+                            // Do not forward info logs
+                            // await log.info(`${prefix}: ${message}`, false)
                             break
                         case 'warn':
                             await log.warn(`${prefix}: ${message}`, false)
