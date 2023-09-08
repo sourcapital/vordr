@@ -78,7 +78,7 @@ export class Loki {
                             await log.warn(`${prefix}: ${message}`, false)
                             break
                         case 'error':
-                            await log.error(`${prefix}: ${message}`, false, false)
+                            await log.error(`${prefix}: ${message}`, false)
                             break
                     }
                 }
