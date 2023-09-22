@@ -57,7 +57,7 @@ if (config.nodeENV === 'production') {
 
 // Setup BetterUptime heartbeats (in correct sequence)
 await log.info('Setup BetterUptime heartbeats ...')
-for (const node of nodes) await node.initHeartbeats()
+for (const node of nodes) node.initHeartbeats()
 // Setup BetterUptime incident cleanup
 await log.info('Setup BetterUptime incident cleanup ...')
 await betterUptime.setupCleanup('0 0 * * * *') // once per hour

@@ -71,13 +71,6 @@
   resolved "https://registry.yarnpkg.com/@types/caseless/-/caseless-0.12.2.tgz#f65d3d6389e01eeb458bd54dc8f52b95a9463bc8"
   integrity sha512-6ckxMjBBD8URvjB6J3NcnuAn5Pkl7t3TizAg+xdlzzQGSPSmBcXf8KoIH0ua/i+tio+ZRUHEXp0HEmvaR4kt0w==
 
-"@types/cron@^2.4.1":
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/@types/cron/-/cron-2.4.0.tgz#884d7866187d26291df206c09805d06b147986e4"
-  integrity sha512-5bBaAkqvSFBX8JMi/xCofNzG5E594TNsApMz68dLd/sQYz/HGQqgcxGHTRjOvD4G3Y+YF1Oo3S7QdCvKt1KAJQ==
-  dependencies:
-    cron "*"
-
 "@types/js-yaml@^4.0.1":
   version "4.0.5"
   resolved "https://registry.yarnpkg.com/@types/js-yaml/-/js-yaml-4.0.5.tgz#738dd390a6ecc5442f35e7f03fa1431353f7e138"
@@ -252,7 +245,7 @@ core-util-is@1.0.2:
   resolved "https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz#b5fd54220aa2bc5ab57aab7140c940754503c1a7"
   integrity sha512-3lqz5YjWTYnW6dlDa5TLaTCcShfar1e40rmcJVwCBJC6mWlFuj0eCHIElmG1g5kyuJ/GD+8Wn4FFCcz4gJPfaQ==
 
-cron@*, cron@^2.4.1:
+cron@^2.4.3:
   version "2.4.3"
   resolved "https://registry.yarnpkg.com/cron/-/cron-2.4.3.tgz#4e43d8d9a6373b8f28d876c4e9a47c14422d8652"
   integrity sha512-YBvExkQYF7w0PxyeFLRyr817YVDhGxaCi5/uRRMqa4aWD3IFKRd+uNbpW1VWMdqQy8PZ7CElc+accXJcauPKzQ==
