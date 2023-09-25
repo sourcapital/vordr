@@ -53,7 +53,7 @@ spec:
       serviceAccountName: vordr
       containers:
         - name: vordr
-          image: sourcap/vordr:release-1.8.0@sha256:f355d00785f9778f1be32cf3849d38b11856282c3025dce9c5db65c582c29185
+          image: sourcap/vordr:release-1.8.1@sha256:0cc6ddd94b43480202c2e825cb34915463daa6675fffdea825e99b0f0736bbef
           imagePullPolicy: IfNotPresent
           env:
             - name: NODE_ENV
