@@ -1,4 +1,3 @@
-import numeral from 'numeral'
 import {Node} from './Node.js'
 import {safeAxiosGet} from '../helpers/Axios.js'
 import {HeartbeatType} from '../integrations/BetterStack.js'
@@ -86,11 +85,11 @@ export class Cosmos extends Node {
 
         const nodeBlockHeight = Number(nodeResponse.data.result.sync_info.latest_block_height)
         const apiBlockHeight = Number(apiResponse?.data.result.sync_info.latest_block_height ?? -1)
-        await log.info(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${numeral(nodeBlockHeight).format('0,0')}; apiBlockHeight = ${numeral(apiBlockHeight).format('0,0')}`)
+        await log.info(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${nodeBlockHeight}; apiBlockHeight = ${apiBlockHeight}`)
 
         // Check if node is behind the api block height (1 block behind is ok due to network latency)
         if (nodeBlockHeight < apiBlockHeight - 1) {
-            await log.warn(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight < apiBlockHeight: ${numeral(nodeBlockHeight).format('0,0')} < ${numeral(apiBlockHeight).format('0,0')}`)
+            await log.warn(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight < apiBlockHeight: ${nodeBlockHeight} < ${apiBlockHeight}`)
             return false
         }
 

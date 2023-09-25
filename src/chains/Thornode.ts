@@ -1,6 +1,5 @@
 import _ from 'underscore'
 import moment from 'moment'
-import numeral from 'numeral'
 import {config} from '../config.js'
 import {Chain, Cosmos} from './Cosmos.js'
 import {safeAxiosGet} from '../helpers/Axios.js'
@@ -130,7 +129,7 @@ export class Thornode extends Cosmos {
         const nodeWithHighestBondInTheBottomTwoThirds = bottomTwoThirdActiveNodes[bottomTwoThirdActiveNodes.length - 1]
         const maxEfficientBond = nodeWithHighestBondInTheBottomTwoThirds.bond
 
-        await log.info(`${Thornode.name}:Bond: bond = ${numeral(node.bond).format('0,0')}; reward = ${numeral(node.reward).format('0,0')}; maxEfficientBond = ${numeral(maxEfficientBond).format('0,0')}`)
+        await log.info(`${Thornode.name}:Bond: bond = ${node.bond}; reward = ${node.reward}; maxEfficientBond = ${maxEfficientBond}`)
     }
 
     async monitorSlashPoints() {
@@ -174,7 +173,7 @@ export class Thornode extends Cosmos {
         const mid = Math.floor(activeNodes.length / 2)
         const median = activeNodes.length % 2 === 0 ? (activeNodes[mid - 1].slashPoints + activeNodes[mid].slashPoints) / 2 : activeNodes[mid].slashPoints
 
-        await log.info(`${Thornode.name}:SlashPoints: node = ${numeral(node.slashPoints).format('0,0')}; network = ${numeral(min).format('0,0')} (min), ${numeral(median).format('0,0')} (median), ${numeral(average).format('0,0')} (average), ${numeral(worstTop10Threshold).format('0,0')} (worstTop10Threshold), ${numeral(max).format('0,0')} (max)`)
+        await log.info(`${Thornode.name}:SlashPoints: node = ${node.slashPoints}; network = ${min} (min), ${median} (median), ${average} (average), ${worstTop10Threshold} (worstTop10Threshold), ${max} (max)`)
 
         // Alert if node enters the worst top 10
         if (node.slashPoints > worstTop10Threshold) {
@@ -223,7 +222,7 @@ export class Thornode extends Cosmos {
         if (releaseHeight > currentHeight) {
             const reason = jail.reason ?? 'unknown'
             const diff = releaseHeight - currentHeight
-            await log.info(`${Thornode.name}:Jail: Node is jailed for ${numeral(diff).format('0,0')} blocks! (until = ${numeral(releaseHeight).format('0,0')}, reason = '${reason}')`)
+            await log.info(`${Thornode.name}:Jail: Node is jailed for ${diff} blocks! (until = ${releaseHeight}, reason = '${reason}')`)
 
             await betterStack.createJailIncident(Thornode.name, diff, releaseHeight)
         } else {
@@ -276,7 +275,7 @@ export class Thornode extends Cosmos {
             // Alert if node is behind on chain observations only every 10 minutes, but resolve every minute
             if (observedHeight < latestObservedHeightConsensus && moment().minutes() % 10 === 0) {
                 const diff = latestObservedHeightConsensus - observedHeight
-                await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${numeral(diff).format('0,0')} blocks behind the majority observation of the network! (observedHeight = ${numeral(observedHeight).format('0,0')}, latestObservedHeightConsensus = ${numeral(latestObservedHeightConsensus).format('0,0')})`)
+                await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${diff} blocks behind the majority observation of the network! (observedHeight = ${observedHeight}, latestObservedHeightConsensus = ${latestObservedHeightConsensus})`)
 
                 await betterStack.createChainObservationIncident(chain, diff)
             } else {
