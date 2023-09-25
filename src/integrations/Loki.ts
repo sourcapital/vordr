@@ -35,7 +35,7 @@ export class Loki {
 
         this.ws.on('error', async (error: any) => {
             if (error.code === 'ECONNREFUSED') {
-                await console.error(`${Loki.name}: Unable to connect to '${host}'. Connection was refused!`)
+                console.error(`${Loki.name}: Unable to connect to '${host}'. Connection was refused!`)
             } else {
                 await handleError(error)
             }

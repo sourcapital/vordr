@@ -21,20 +21,20 @@ A monitoring application for THORNodes.
 |----------|--------------------------------------------------------------------|
 | Bitcoin  | Bitcoin (BTC), Litecoin (LTC), Bitcoin Cash (BCH), Dogecoin (DOGE) |
 | Ethereum | Ethereum (ETH), Avalanche (AVAX), Binance Smart Chain (BSC)        |
-| Cosmos   | Cosmos (ATOM), Binance (BNB), THORChain (RUNE)                     |
+| Cosmos   | Cosmos (ATOM), Binance Chain (BNB), THORChain (RUNE)               |
+
+## Environment Variables
+
+| Key                 | Required | Description                                                            |
+|---------------------|----------|------------------------------------------------------------------------|
+| THORNODE_ADDRESS    | Yes      | Set to the address of your THORNode (`thor...`).                       |
+| BETTERSTACK_API_KEY | Yes      | BetterStack API key, see [here](#uptime).                              |
+| LOGS_SOURCE_TOKEN   | No       | BetterStack Logs source token, see [here](#logs).                      |
+| NODE_ENV            | No       | Set to `production`, if you want to run the application in production. |
 
 ## Kubernetes
 
-### Environment Variables
-
-| Key                  | Required | Description                                                            |
-|----------------------|----------|------------------------------------------------------------------------|
-| THORNODE_ADDRESS     | Yes      | Set to the address of your THORNode (`thor...`).                       |
-| BETTERUPTIME_API_KEY | Yes      | BetterUptime's API Key, see [here](#betteruptime).                     |
-| LOGTAIL_SOURCE_TOKEN | No       | Logtail's Source Token, see [here](#logging-optional).                 |
-| NODE_ENV             | No       | Set to `production`, if you want to run the application in production. |
-
-### Deploy to cluster
+### Deploy to Cluster
 
 Set all environment variables in `k8s-deployment.yaml` and deploy the application:
 
@@ -42,7 +42,7 @@ Set all environment variables in `k8s-deployment.yaml` and deploy the applicatio
 kubectl create -f k8s-deployment.yaml
 ```
 
-### Remove from cluster
+### Remove from Cluster
 
 Remove the application from the Kubernetes cluster:
 
@@ -76,11 +76,11 @@ Run via `node.js`:
 yarn start
 ```
 
-## Alerting
+## BetterStack
 
-### BetterUptime
+### Uptime
 
-BetterUptime is used for alerting and incident management.
+BetterStack Uptime is used for alerting and incident management.
 
 - Heartbeats are sent every minute for `Health` and `Sync Status` of the nodes
 - Missed heartbeats create incidents
@@ -92,31 +92,15 @@ BetterUptime is used for alerting and incident management.
 
 #### API Key
 
-Sign up at [betteruptime.com](https://betteruptime.com/?ref=8l7f) and follow the [docs](https://docs.betteruptime.com/api/getting-started#obtaining-an-api-token) to get the API key.
+Sign up at [betterstack.com](https://uptime.betterstack.com/?ref=8l7f) and follow the [docs](https://betterstack.com/docs/uptime/api/getting-started-with-uptime-api/) to get the API key.
 
-<img width="1560" alt="image" src="https://user-images.githubusercontent.com/6087393/195767124-69095786-69e3-4927-a9ba-5dab0d6958f1.png">
+### Logs
 
-## Logging (optional)
-
-### Logtail
-
-Logtail can be optionally used for log manangement.
-
-If `LOGTAIL_SOURCE_TOKEN` is set in the environment variables:
-- Vǫrðr forwards its own logs to Logtail
-- Vǫrðr aggregates and forwards the logs of all chains to Logtail
+BetterStack Logs is used for log manangement and dashboard visualization.
 
 #### Source Token
 
-Sign up at [logtail.com](https://logtail.com), go to `Sources`, add a new `Source` with `JavaScript` as the platform and get the `Source Token`.
-
-<img width="1560" alt="image" src="https://user-images.githubusercontent.com/6087393/195772008-9f6e8708-6ead-4b92-92ff-5a0db7b89384.png">
-
-#### Grafana
-
-Forwarded logs can be queried and analyzed within the built-in Grafana in Logtail. Read more [here](https://docs.logtail.com/how-to/querying-data-in-logtail#grafana).
-
-<img width="1516" alt="image" src="https://user-images.githubusercontent.com/6087393/195779749-3e197654-32e5-4481-96dd-339ed6bea66d.png">
+Sign up at [betterstack.com](https://logs.betterstack.com/?ref=8l7f) and follow the [docs](https://betterstack.com/docs/logs/logging-start/) to get a source token for the platform `JavaScript • Node.js`.
 
 ## License
 

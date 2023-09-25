@@ -1,8 +1,8 @@
-import {AxiosResponse} from 'axios'
 import numeral from 'numeral'
+import {AxiosResponse} from 'axios'
 import {Node} from './Node.js'
 import {safeAxiosPost} from '../helpers/Axios.js'
-import {HeartbeatType} from '../integrations/BetterUptime.js'
+import {HeartbeatType} from '../integrations/BetterStack.js'
 
 export enum Chain {
     Ethereum = 'ethereum',
@@ -23,7 +23,7 @@ export class Ethereum extends Node {
     }
 
     async initHeartbeats() {
-        await betterUptime.initHeartbeats(getChainName(this.chain), [
+        await betterStack.initHeartbeats(getChainName(this.chain), [
             HeartbeatType.HEALTH,
             HeartbeatType.SYNC_STATUS
         ])
@@ -40,7 +40,7 @@ export class Ethereum extends Node {
         }
 
         await log.info(`${getChainName(this.chain)}: Node is up!`)
-        await betterUptime.sendHeartbeat(getChainName(this.chain), HeartbeatType.HEALTH)
+        await betterStack.sendHeartbeat(getChainName(this.chain), HeartbeatType.HEALTH)
 
         return true
     }
@@ -101,7 +101,7 @@ export class Ethereum extends Node {
         }
 
         await log.info(`${getChainName(this.chain)}: Node is synced!`)
-        await betterUptime.sendHeartbeat(getChainName(this.chain), HeartbeatType.SYNC_STATUS)
+        await betterStack.sendHeartbeat(getChainName(this.chain), HeartbeatType.SYNC_STATUS)
 
         return true
     }

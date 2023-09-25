@@ -4,7 +4,7 @@ import numeral from 'numeral'
 import {config} from '../config.js'
 import {Chain, Cosmos} from './Cosmos.js'
 import {safeAxiosGet} from '../helpers/Axios.js'
-import {HeartbeatType, IncidentType} from '../integrations/BetterUptime.js'
+import {HeartbeatType, IncidentType} from '../integrations/BetterStack.js'
 
 export class Thornode extends Cosmos {
     private readonly thorRpcUrl: string
@@ -15,7 +15,7 @@ export class Thornode extends Cosmos {
     }
 
     async initHeartbeats() {
-        await betterUptime.initHeartbeats(Thornode.name, [
+        await betterStack.initHeartbeats(Thornode.name, [
             HeartbeatType.HEALTH,
             HeartbeatType.VERSION
         ])
@@ -41,7 +41,7 @@ export class Thornode extends Cosmos {
         }
 
         await log.info(`${Thornode.name}: Node is up!`)
-        await betterUptime.sendHeartbeat(Thornode.name, HeartbeatType.HEALTH)
+        await betterStack.sendHeartbeat(Thornode.name, HeartbeatType.HEALTH)
 
         return await super.isUp()
     }
@@ -89,7 +89,7 @@ export class Thornode extends Cosmos {
         }
 
         await log.info(`${Thornode.name}: Node version is up-to-date!`)
-        await betterUptime.sendHeartbeat(Thornode.name, HeartbeatType.VERSION)
+        await betterStack.sendHeartbeat(Thornode.name, HeartbeatType.VERSION)
     }
 
     async monitorBond() {
@@ -178,9 +178,9 @@ export class Thornode extends Cosmos {
 
         // Alert if node enters the worst top 10
         if (node.slashPoints > worstTop10Threshold) {
-            await betterUptime.createSlashPointIncident(Thornode.name, node.slashPoints, worstTop10Threshold)
+            await betterStack.createSlashPointIncident(Thornode.name, node.slashPoints, worstTop10Threshold)
         } else {
-            await betterUptime.resolveIncidents(Thornode.name, IncidentType.SLASH_POINTS)
+            await betterStack.resolveIncidents(Thornode.name, IncidentType.SLASH_POINTS)
         }
     }
 
@@ -225,9 +225,9 @@ export class Thornode extends Cosmos {
             const diff = releaseHeight - currentHeight
             await log.info(`${Thornode.name}:Jail: Node is jailed for ${numeral(diff).format('0,0')} blocks! (until = ${numeral(releaseHeight).format('0,0')}, reason = '${reason}')`)
 
-            await betterUptime.createJailIncident(Thornode.name, diff, releaseHeight)
+            await betterStack.createJailIncident(Thornode.name, diff, releaseHeight)
         } else {
-            await betterUptime.resolveIncidents(Thornode.name, IncidentType.JAIL)
+            await betterStack.resolveIncidents(Thornode.name, IncidentType.JAIL)
         }
     }
 
@@ -278,9 +278,9 @@ export class Thornode extends Cosmos {
                 const diff = latestObservedHeightConsensus - observedHeight
                 await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${numeral(diff).format('0,0')} blocks behind the majority observation of the network! (observedHeight = ${numeral(observedHeight).format('0,0')}, latestObservedHeightConsensus = ${numeral(latestObservedHeightConsensus).format('0,0')})`)
 
-                await betterUptime.createChainObservationIncident(chain, diff)
+                await betterStack.createChainObservationIncident(chain, diff)
             } else {
-                await betterUptime.resolveIncidents(chain, IncidentType.CHAIN_OBSERVATION)
+                await betterStack.resolveIncidents(chain, IncidentType.CHAIN_OBSERVATION)
             }
         }
     }

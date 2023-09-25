@@ -69,7 +69,7 @@ export enum IncidentType {
     CHAIN_OBSERVATION = 'Chain Observation'
 }
 
-export class BetterUptime {
+export class BetterStack {
     private readonly apiKey: string
     private cache: Map<string, number> = new Map()
 
@@ -81,7 +81,7 @@ export class BetterUptime {
         if (config.nodeENV !== 'production') return
 
         new Cron(schedule, async () => {
-            const incidents = await betterUptime.getIncidents(undefined, true, false)
+            const incidents = await betterStack.getIncidents(undefined, true, false)
             const incidentsToDelete = _.sortBy(incidents, (incident) => {
                 return incident.attributes.started_at
             }).reverse().slice(50) // Get all incidents except the latest 50
@@ -91,7 +91,7 @@ export class BetterUptime {
             }
 
             if (incidentsToDelete.length > 0) {
-                await log.info(`${BetterUptime.name}: Cleaned up ${incidentsToDelete.length} incidents!`)
+                await log.info(`${BetterStack.name}: Cleaned up ${incidentsToDelete.length} incidents!`)
             }
         }).run()
     }
@@ -111,7 +111,7 @@ export class BetterUptime {
                 // Create new heartbeat
                 await this.getHeartbeat(name, type)
             } else {
-                await log.debug(`${BetterUptime.name}: Heartbeat already created: '${identifier}'`)
+                await log.debug(`${BetterStack.name}: Heartbeat already created: '${identifier}'`)
             }
         }
     }
@@ -126,7 +126,7 @@ export class BetterUptime {
             if (response.status === 200) {
                 await log.info(`Heartbeat:${heartbeat.attributes.name} ❤️`)
             } else {
-                await log.error(`${BetterUptime.name}:${this.sendHeartbeat.name}: HTTP status code: ${response.status}`)
+                await log.error(`${BetterStack.name}:${this.sendHeartbeat.name}: HTTP status code: ${response.status}`)
             }
         } catch (error) {
             await handleError(error)
@@ -186,7 +186,7 @@ export class BetterUptime {
     }
 
     private async resolveIncident(id: string) {
-        await log.debug(`${BetterUptime.name}: Resolving incident: ${id}`)
+        await log.debug(`${BetterStack.name}: Resolving incident: ${id}`)
         await this.send('POST', `incidents/${id}/resolve`)
     }
 
@@ -202,7 +202,7 @@ export class BetterUptime {
     }
 
     private async deleteIncident(id: string) {
-        await log.debug(`${BetterUptime.name}: Deleting incident: ${id}`)
+        await log.debug(`${BetterStack.name}: Deleting incident: ${id}`)
         await this.send('DELETE', `incidents/${id}`)
     }
 
@@ -227,7 +227,7 @@ export class BetterUptime {
         let heartbeats = await this.getHeartbeats()
 
         for (const heartbeat of heartbeats) {
-            await log.info(`${BetterUptime.name}: Deleting heartbeat: '${heartbeat.attributes.name}'`)
+            await log.info(`${BetterStack.name}: Deleting heartbeat: '${heartbeat.attributes.name}'`)
             await this.send('DELETE', `heartbeats/${heartbeat.id}`)
         }
     }
@@ -236,7 +236,7 @@ export class BetterUptime {
         const heartbeatGroups = await this.getHeartbeatGroups()
 
         for (const heartbeatGroup of heartbeatGroups) {
-            await log.info(`${BetterUptime.name}: Deleting heartbeat group: '${heartbeatGroup.attributes.name}'`)
+            await log.info(`${BetterStack.name}: Deleting heartbeat group: '${heartbeatGroup.attributes.name}'`)
             await this.send('DELETE', `heartbeat-groups/${heartbeatGroup.id}`)
         }
     }
@@ -275,7 +275,7 @@ export class BetterUptime {
         const group = await this.getHeartbeatGroup(name)
 
         if (!heartbeat) {
-            await log.info(`${BetterUptime.name}: Creating new heartbeat: '${identifier}'`)
+            await log.info(`${BetterStack.name}: Creating new heartbeat: '${identifier}'`)
 
             // Create new heartbeat
             const response = await this.send('POST', 'heartbeats', {
@@ -318,7 +318,7 @@ export class BetterUptime {
         }))
 
         if (!group) {
-            await log.info(`${BetterUptime.name}: Creating new heartbeat group: '${identifier}'`)
+            await log.info(`${BetterStack.name}: Creating new heartbeat group: '${identifier}'`)
 
             // Create new heartbeat group
             const response = await this.send('POST', 'heartbeat-groups', {
@@ -356,7 +356,7 @@ export class BetterUptime {
         let nextPageUrl = undefined
 
         do {
-            await log.debug(`${BetterUptime.name}:${this.getIncidents.name}: title='${title}', resolved='${resolved}', returnEarly='${returnEarly}', nextPageUrl=${nextPageUrl}`)
+            await log.debug(`${BetterStack.name}:${this.getIncidents.name}: title='${title}', resolved='${resolved}', returnEarly='${returnEarly}', nextPageUrl=${nextPageUrl}`)
 
             if (nextPageUrl) {
                 response = await this.send('GET', 'incidents?per_page=50', undefined, nextPageUrl)
@@ -383,7 +383,7 @@ export class BetterUptime {
 
         while (true) {
             try {
-                const url = nextPageUrl ? nextPageUrl : `https://betteruptime.com/api/v2/${endpoint}`
+                const url = nextPageUrl ? nextPageUrl : `https://uptime.betterstack.com/api/v2/${endpoint}`
 
                 response = await axios.request({
                     url: url,
@@ -406,7 +406,7 @@ export class BetterUptime {
                 if (response.status === httpCode) {
                     break
                 } else {
-                    await log.error(`${BetterUptime.name}:${this.send.name}: HTTP status code: ${response.status}`)
+                    await log.error(`${BetterStack.name}:${this.send.name}: HTTP status code: ${response.status}`)
                 }
             } catch (error) {
                 await handleError(error)

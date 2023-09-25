@@ -2,9 +2,9 @@ import _ from 'underscore'
 import {config} from './config.js'
 import {Log} from './helpers/Log.js'
 import {Cron} from './helpers/Cron.js'
-import {Kubernetes} from './integrations/Kubernetes.js'
 import {Loki} from './integrations/Loki.js'
-import {BetterUptime} from './integrations/BetterUptime.js'
+import {Kubernetes} from './integrations/Kubernetes.js'
+import {BetterStack} from './integrations/BetterStack.js'
 import {Node} from './chains/Node.js'
 import {Thornode} from './chains/Thornode.js'
 import {Binance} from './chains/Binance.js'
@@ -20,7 +20,7 @@ import {BinanceSmartChain} from './chains/BinanceSmartChain.js'
 // Setup globals
 global.sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 global.log = new Log()
-global.betterUptime = new BetterUptime(config.betterUptime.apiKey)
+global.betterStack = new BetterStack(config.betterStack.uptime.apiKey)
 global.kubernetes = new Kubernetes()
 global.loki = new Loki()
 
@@ -55,12 +55,12 @@ if (config.nodeENV === 'production') {
     ]
 }
 
-// Setup BetterUptime heartbeats (in correct sequence)
-await log.info('Setup BetterUptime heartbeats ...')
+// Setup BetterStack heartbeats (in correct sequence)
+await log.info('Setup BetterStack heartbeats ...')
 for (const node of nodes) node.initHeartbeats()
-// Setup BetterUptime incident cleanup
-await log.info('Setup BetterUptime incident cleanup ...')
-await betterUptime.setupCleanup('0 0 * * * *') // once per hour
+// Setup BetterStack incident cleanup
+await log.info('Setup BetterStack incident cleanup ...')
+await betterStack.setupCleanup('0 0 * * * *') // once per hour
 // Setup k8s pod restart monitoring
 await log.info('Setup k8s pod restart monitoring ...')
 await kubernetes.setupRestartMonitoring('0 * * * * *') // every minute

@@ -2,7 +2,7 @@ import _ from 'underscore'
 import k8s, {KubeConfig} from '@kubernetes/client-node'
 import {config} from '../config.js'
 import {Cron} from '../helpers/Cron.js'
-import {IncidentType} from './BetterUptime.js'
+import {IncidentType} from './BetterStack.js'
 
 declare type K8sPod = {
     name: string,
@@ -62,9 +62,9 @@ export class Kubernetes {
 
         // Alert for any restarts
         if (pod.restarts > 0) {
-            await betterUptime.createRestartIncident(getContainerName(pod.container), pod.restarts)
+            await betterStack.createRestartIncident(getContainerName(pod.container), pod.restarts)
         } else {
-            await betterUptime.resolveIncidents(getContainerName(pod.container), IncidentType.RESTART)
+            await betterStack.resolveIncidents(getContainerName(pod.container), IncidentType.RESTART)
         }
     }
 
