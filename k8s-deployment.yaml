@@ -66,8 +66,8 @@ spec:
               value: '{LOGS_SOURCE_TOKEN}'
           resources:
             limits:
-              cpu: 0.2
+              cpu: '0.2'
               memory: 256Mi
             requests:
-              cpu: 0.2
+              cpu: '0.2'
               memory: 256Mi
