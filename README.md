@@ -98,6 +98,9 @@ Sign up at [betterstack.com](https://uptime.betterstack.com/?ref=8l7f) and follo
 
 BetterStack Logs is used for log manangement and dashboard visualization.
 
+- Vǫrðr forwards its own logs
+- k8s `error` and `warn` logs are also forwarded
+
 #### Source Token
 
 Sign up at [betterstack.com](https://logs.betterstack.com/?ref=8l7f) and follow the [docs](https://betterstack.com/docs/logs/logging-start/) to get a source token for the platform `JavaScript • Node.js`.
