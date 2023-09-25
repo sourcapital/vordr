@@ -1,6 +1,5 @@
 import _ from 'underscore'
 import moment from 'moment'
-import numeral from 'numeral'
 import {config} from '../config.js'
 import {Chain, Cosmos} from './Cosmos.js'
 import {safeAxiosGet} from '../helpers/Axios.js'
@@ -130,7 +129,7 @@ export class Thornode extends Cosmos {
         const nodeWithHighestBondInTheBottomTwoThirds = bottomTwoThirdActiveNodes[bottomTwoThirdActiveNodes.length - 1]
         const maxEfficientBond = nodeWithHighestBondInTheBottomTwoThirds.bond
 
-        await log.info(`${Thornode.name}:Bond: bond = ${numeral(node.bond).format('0')}; reward = ${numeral(node.reward).format('0')}; maxEfficientBond = ${numeral(maxEfficientBond).format('0')}`)
+        await log.info(`${Thornode.name}:Bond: bond = ${Math.round(node.bond)}; reward = ${Math.round(node.reward)}; maxEfficientBond = ${Math.round(maxEfficientBond)}`)
     }
 
     async monitorSlashPoints() {
@@ -174,7 +173,7 @@ export class Thornode extends Cosmos {
         const mid = Math.floor(activeNodes.length / 2)
         const median = activeNodes.length % 2 === 0 ? (activeNodes[mid - 1].slashPoints + activeNodes[mid].slashPoints) / 2 : activeNodes[mid].slashPoints
 
-        await log.info(`${Thornode.name}:SlashPoints: node = ${node.slashPoints}; network = ${min} (min), ${median} (median), ${average} (average), ${worstTop10Threshold} (worstTop10Threshold), ${max} (max)`)
+        await log.info(`${Thornode.name}:SlashPoints: node = ${Math.round(node.slashPoints)}; network = ${Math.round(min)} (min), ${Math.round(median)} (median), ${Math.round(average)} (average), ${Math.round(worstTop10Threshold)} (worstTop10Threshold), ${Math.round(max)} (max)`)
 
         // Alert if node enters the worst top 10
         if (node.slashPoints > worstTop10Threshold) {
