@@ -1,5 +1,6 @@
 import _ from 'underscore'
 import moment from 'moment'
+import numeral from 'numeral'
 import {config} from '../config.js'
 import {Chain, Cosmos} from './Cosmos.js'
 import {safeAxiosGet} from '../helpers/Axios.js'
@@ -129,7 +130,7 @@ export class Thornode extends Cosmos {
         const nodeWithHighestBondInTheBottomTwoThirds = bottomTwoThirdActiveNodes[bottomTwoThirdActiveNodes.length - 1]
         const maxEfficientBond = nodeWithHighestBondInTheBottomTwoThirds.bond
 
-        await log.info(`${Thornode.name}:Bond: bond = ${node.bond}; reward = ${node.reward}; maxEfficientBond = ${maxEfficientBond}`)
+        await log.info(`${Thornode.name}:Bond: bond = ${numeral(node.bond).format('0')}; reward = ${numeral(node.reward).format('0')}; maxEfficientBond = ${numeral(maxEfficientBond).format('0')}`)
     }
 
     async monitorSlashPoints() {
