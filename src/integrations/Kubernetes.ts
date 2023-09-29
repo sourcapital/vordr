@@ -23,7 +23,7 @@ enum Container {
     Dogecoin = 'dogecoin-daemon',
     Cosmos = 'gaia-daemon',
     Avalanche = 'avalanche-daemon',
-    BinanceSmartChain = 'binance-smart-daemon'
+    BinanceSmart = 'binance-smart-daemon'
 }
 
 export const getContainerName = (container: string | Container): string => {
