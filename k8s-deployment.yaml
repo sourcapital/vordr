@@ -59,11 +59,33 @@ spec:
             - name: NODE_ENV
               value: 'production'
             - name: THORNODE_ADDRESS
-              value: '{THORNODE_ADDRESS}'
+              value: 'thorXXXX'
             - name: BETTERSTACK_API_KEY
-              value: '{BETTERSTACK_API_KEY}'
+              value: 'XXXX'
             - name: LOGS_SOURCE_TOKEN
-              value: '{LOGS_SOURCE_TOKEN}'
+              value: 'XXXX'
+            - name: NODE_ENDPOINT_THORNODE
+              value: 'http://thornode.thornode:1317'
+            - name: NODE_ENDPOINT_THORCHAIN
+              value: 'http://thornode.thornode:27147'
+            - name: NODE_ENDPOINT_BINANCE_CHAIN
+              value: 'http://binance-daemon.thornode:27147'
+            - name: NODE_ENDPOINT_BITCOIN
+              value: 'http://thorchain:password@bitcoin-daemon.thornode:8332'
+            - name: NODE_ENDPOINT_ETHEREUM
+              value: 'http://ethereum-daemon.thornode:8545'
+            - name: NODE_ENDPOINT_LITECOIN
+              value: 'http://thorchain:password@litecoin-daemon.thornode:9332'
+            - name: NODE_ENDPOINT_BITCOIN_CASH
+              value: 'http://thorchain:password@bitcoin-cash-daemon.thornode:8332'
+            - name: NODE_ENDPOINT_DOGECOIN
+              value: 'http://thorchain:password@dogecoin-daemon.thornode:22555'
+            - name: NODE_ENDPOINT_COSMOS
+              value: 'http://gaia-daemon.thornode:26657'
+            - name: NODE_ENDPOINT_AVALANCHE
+              value: 'http://avalanche-daemon.thornode:9650/ext/bc/C/rpc'
+            - name: NODE_ENDPOINT_BINANCE_SMART
+              value: 'http://binance-smart-daemon.thornode:8545'
           resources:
             limits:
               cpu: '0.2'

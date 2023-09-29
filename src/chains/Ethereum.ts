@@ -6,7 +6,7 @@ import {HeartbeatType} from '../integrations/BetterStack.js'
 export enum Chain {
     Ethereum = 'ethereum',
     Avalanche = 'avalanche',
-    BinanceSmartChain = 'binance-smart'
+    BinanceSmart = 'binance-smart'
 }
 
 const getChainName = (chain: string | Chain): string => {
@@ -55,7 +55,7 @@ export class Ethereum extends Node {
             case Chain.Avalanche:
                 apiUrl = 'https://avalanche.ninerealms.com/ext/bc/C/rpc'
                 break
-            case Chain.BinanceSmartChain:
+            case Chain.BinanceSmart:
                 apiUrl = 'https://binance-smart.ninerealms.com'
                 break
         }
