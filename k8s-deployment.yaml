@@ -58,11 +58,11 @@ spec:
             - name: NODE_ENV
               value: 'production'
             - name: BETTERSTACK_API_KEY
-              value: 'XXXX'
+              value: 'XXX'
             - name: LOGS_SOURCE_TOKEN
-              value: 'XXXX'
+              value: 'XXX'
             - name: THORNODE_ADDRESS
-              value: 'thorXXXX'
+              value: 'thorXXX'
             - name: NODE_ENDPOINT_THORNODE
               value: 'http://thornode.thornode:1317'
             - name: NODE_ENDPOINT_THORCHAIN
