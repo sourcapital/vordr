@@ -27,10 +27,10 @@ A monitoring application for THORNodes.
 
 | Key                 | Required | Description                                                            |
 |---------------------|----------|------------------------------------------------------------------------|
-| THORNODE_ADDRESS    | Yes      | Set to the address of your THORNode (`thor...`).                       |
-| BETTERSTACK_API_KEY | Yes      | BetterStack API key, see [here](#uptime).                              |
-| LOGS_SOURCE_TOKEN   | No       | BetterStack Logs source token, see [here](#logs).                      |
 | NODE_ENV            | No       | Set to `production`, if you want to run the application in production. |
+| BETTERSTACK_API_KEY | Yes      | BetterStack API key, see [here](#uptime).                              |
+| LOGS_SOURCE_TOKEN   | No       | BetterStack Logs source token, see [here](#logs-optional).             |
+| THORNODE_ADDRESS    | Yes      | Set to the address of your THORNode (`thor...`).                       |
 
 ## Kubernetes
 
@@ -94,7 +94,7 @@ BetterStack Uptime is used for alerting and incident management.
 
 Sign up at [betterstack.com](https://uptime.betterstack.com/?ref=8l7f) and follow the [docs](https://betterstack.com/docs/uptime/api/getting-started-with-uptime-api/) to get the API key.
 
-### Logs
+### Logs (optional)
 
 BetterStack Logs is used for log manangement and dashboard visualization.
 

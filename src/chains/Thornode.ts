@@ -175,8 +175,8 @@ export class Thornode extends Cosmos {
 
         await log.info(`${Thornode.name}:SlashPoints: node = ${Math.round(node.slashPoints)}; network = ${Math.round(min)} (min), ${Math.round(median)} (median), ${Math.round(average)} (average), ${Math.round(worstTop10Threshold)} (worstTop10Threshold), ${Math.round(max)} (max)`)
 
-        // Alert if node enters the worst top 10
-        if (node.slashPoints > worstTop10Threshold) {
+        // Alert if node enters the worst-top-10 and has over 500 slash points
+        if (node.slashPoints > worstTop10Threshold && node.slashPoints > 500) {
             await betterStack.createSlashPointIncident(Thornode.name, node.slashPoints, worstTop10Threshold)
         } else {
             await betterStack.resolveIncidents(Thornode.name, IncidentType.SLASH_POINTS)
@@ -224,7 +224,7 @@ export class Thornode extends Cosmos {
             const diff = releaseHeight - currentHeight
             await log.info(`${Thornode.name}:Jail: Node is jailed for ${diff} blocks! (until = ${releaseHeight}, reason = '${reason}')`)
 
-            await betterStack.createJailIncident(Thornode.name, diff, releaseHeight)
+            await betterStack.createJailIncident(Thornode.name, currentHeight, releaseHeight)
         } else {
             await betterStack.resolveIncidents(Thornode.name, IncidentType.JAIL)
         }

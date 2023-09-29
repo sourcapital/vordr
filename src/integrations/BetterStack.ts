@@ -153,20 +153,22 @@ export class BetterStack {
         if (slashPoints > threshold && slashPoints > 2 * previousSlashPoints) {
             await this.createIncident(
                 `${identifier}`,
-                `${name} has accumulated ${numeral(slashPoints).format('0,0')} slash points!`
+                `${name} entered the worst performing top 10 with ${numeral(slashPoints).format('0,0')} slash points!`
             )
             this.cache.set(identifier, slashPoints)
         }
     }
 
-    async createJailIncident(name: string, numberOfblocks: number, releaseHeight: number) {
+    async createJailIncident(name: string, currentHeight: number, releaseHeight: number) {
         const identifier = `${name} ${IncidentType.JAIL} (${config.thornodeAddress!.slice(-4)})`
         const previousReleaseHeight = this.cache.get(identifier) ?? 0
 
-        if (releaseHeight > previousReleaseHeight) {
+        if (currentHeight > previousReleaseHeight && releaseHeight > previousReleaseHeight) {
+            const numberOfblocks = releaseHeight - currentHeight
+
             await this.createIncident(
                 `${identifier}`,
-                `${name} has been jailed for ${numeral(numberOfblocks).format('0,0')} blocks! (until: ${numeral(releaseHeight).format('0,0')})`
+                `${name} has been jailed until #${numeral(releaseHeight).format('0,0')} (${numeral(numberOfblocks).format('0,0')} blocks)!`
             )
             this.cache.set(identifier, releaseHeight)
         }
