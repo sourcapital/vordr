@@ -1,14 +1,11 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: vordr
----
+# This ServiceAccount provides identity for the Vǫrðr application within the thornode namespace.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: vordr
-  namespace: vordr
+  namespace: thornode
 ---
+# This Role defines the permissions for listing and getting pods and their logs within the thornode namespace.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -19,6 +16,7 @@ rules:
     resources: [ 'pods', 'pods/log' ]
     verbs: [ 'get', 'list' ]
 ---
+# This RoleBinding associates the Vǫrðr ServiceAccount with the get-pods Role, granting it the permissions defined in the Role.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -27,17 +25,18 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: vordr
-    namespace: vordr
+    namespace: thornode
 roleRef:
   kind: Role
   name: get-pods
   apiGroup: rbac.authorization.k8s.io
 ---
+# This Deployment specifies how the Vǫrðr application should be run in pods within the thornode namespace.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vordr
-  namespace: vordr
+  namespace: thornode
 spec:
   replicas: 1
   strategy:
@@ -58,17 +57,17 @@ spec:
           env:
             - name: NODE_ENV
               value: 'production'
-            - name: THORNODE_ADDRESS
-              value: 'thorXXXX'
             - name: BETTERSTACK_API_KEY
               value: 'XXXX'
             - name: LOGS_SOURCE_TOKEN
               value: 'XXXX'
+            - name: THORNODE_ADDRESS
+              value: 'thorXXXX'
             - name: NODE_ENDPOINT_THORNODE
               value: 'http://thornode.thornode:1317'
             - name: NODE_ENDPOINT_THORCHAIN
               value: 'http://thornode.thornode:27147'
-            - name: NODE_ENDPOINT_BINANCE_CHAIN
+            - name: NODE_ENDPOINT_BINANCE
               value: 'http://binance-daemon.thornode:27147'
             - name: NODE_ENDPOINT_BITCOIN
               value: 'http://thorchain:password@bitcoin-daemon.thornode:8332'

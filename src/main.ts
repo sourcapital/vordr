@@ -26,7 +26,7 @@ global.loki = new Loki()
 // Init nodes
 const nodes = [
     new Thornode(config.nodeEndpoint.thornode, config.nodeEndpoint.thorchain),
-    new Binance(config.nodeEndpoint.binanceChain),
+    new Binance(config.nodeEndpoint.binance),
     new Bitcoin(config.nodeEndpoint.bitcoin),
     new Ethereum(config.nodeEndpoint.ethereum),
     new Litecoin(config.nodeEndpoint.litecoin),
@@ -42,12 +42,12 @@ await log.info('Setup BetterStack heartbeats ...')
 for (const node of nodes) {
     await node.initHeartbeats()
 }
-// Setup BetterStack incident cleanup
+// Setup BetterStack incident cleanup to run once per hour
 await log.info('Setup BetterStack incident cleanup ...')
-await betterStack.setupCleanup('0 0 * * * *') // once per hour
-// Setup k8s pod restart monitoring
+await betterStack.setupCleanup('0 0 * * * *')
+// Setup k8s pod restart monitoring to run every minute
 await log.info('Setup k8s pod restart monitoring ...')
-await kubernetes.setupRestartMonitoring('0 * * * * *') // every minute
+await kubernetes.setupRestartMonitoring('0 * * * * *')
 // Connect to Loki
 await log.info('Setup Loki connection ...')
 await loki.connect()
