@@ -23,7 +23,7 @@ export class Bitcoin extends Node {
     }
 
     async initHeartbeats() {
-        await betterStack.initHeartbeats(getChainName(this.chain), [
+        await global.betterStack?.initHeartbeats(getChainName(this.chain), [
             HeartbeatType.HEALTH,
             HeartbeatType.SYNC_STATUS
         ])
@@ -40,7 +40,7 @@ export class Bitcoin extends Node {
         }
 
         await log.info(`${getChainName(this.chain)}: Node is up!`)
-        await betterStack.sendHeartbeat(getChainName(this.chain), HeartbeatType.HEALTH)
+        await global.betterStack?.sendHeartbeat(getChainName(this.chain), HeartbeatType.HEALTH)
 
         return true
     }
@@ -82,7 +82,7 @@ export class Bitcoin extends Node {
         }
 
         await log.info(`${getChainName(this.chain)}: Node is synced!`)
-        await betterStack.sendHeartbeat(getChainName(this.chain), HeartbeatType.SYNC_STATUS)
+        await global.betterStack?.sendHeartbeat(getChainName(this.chain), HeartbeatType.SYNC_STATUS)
 
         return true
     }

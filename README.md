@@ -27,7 +27,7 @@ A monitoring application for THORNodes.
 | Key                         | Required | Description                                                                                                                                              |
 |-----------------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------|
 | NODE_ENV                    | No       | Set to `production`, if you want to run the application in production.                                                                                   |
-| BETTERSTACK_API_KEY         | Yes      | BetterStack API key, see [here](#uptime).                                                                                                                |
+| BETTERSTACK_API_KEY         | No       | BetterStack API key, see [here](#betterstack-optional).                                                                                                  |
 | LOGS_SOURCE_TOKEN           | No       | BetterStack Logs source token, see [here](#logs-optional).                                                                                               |
 | THORNODE_ADDRESS            | Yes      | Set to the address of your THORNode (`thor...`).                                                                                                         |
 | NODE_ENDPOINT_THORNODE      | Yes      | THORNode endpoint (e.g. http://thornode.thornode:1317).                                                                                                  |
@@ -86,7 +86,7 @@ Run via `node.js`:
 yarn start
 ```
 
-## BetterStack
+## BetterStack (optional)
 
 ### Uptime
 

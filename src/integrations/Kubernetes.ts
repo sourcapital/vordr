@@ -63,10 +63,10 @@ export class Kubernetes {
         // Alert for any restarts
         if (pod.restarts > 0) {
             // Resolve previous restart incidents
-            await betterStack.resolveIncidents(getContainerName(pod.container), IncidentType.RESTART)
+            await global.betterStack?.resolveIncidents(getContainerName(pod.container), IncidentType.RESTART)
 
             // Create new restart incident
-            await betterStack.createRestartIncident(getContainerName(pod.container), pod.restarts)
+            await global.betterStack?.createRestartIncident(getContainerName(pod.container), pod.restarts)
         }
     }
 

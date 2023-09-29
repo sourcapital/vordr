@@ -19,9 +19,13 @@ import {BinanceSmart} from './chains/BinanceSmart.js'
 // Setup globals
 global.sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
 global.log = new Log()
-global.betterStack = new BetterStack(config.betterStack.uptime.apiKey)
 global.kubernetes = new Kubernetes()
 global.loki = new Loki()
+
+// Init BetterStack only if the API key is set
+if (config.betterStack.uptime.apiKey) {
+    global.betterStack = new BetterStack(config.betterStack.uptime.apiKey)
+}
 
 // Init nodes
 const nodes = [
@@ -37,20 +41,25 @@ const nodes = [
     new BinanceSmart(config.nodeEndpoint.binanceSmart)
 ]
 
-// Setup BetterStack heartbeats (in correct sequence)
-await log.info('Setup BetterStack heartbeats ...')
-for (const node of nodes) {
-    await node.initHeartbeats()
+// Only do BetterStack stuff if it's enabled
+if (global.betterStack) {
+    // Setup BetterStack heartbeats (in correct sequence)
+    await log.info('Setup BetterStack heartbeats ...')
+    for (const node of nodes) {
+        await node.initHeartbeats()
+    }
+    // Setup BetterStack incident cleanup to run once per hour
+    await log.info('Setup BetterStack incident cleanup ...')
+    await global.betterStack.setupCleanup('0 0 * * * *')
 }
-// Setup BetterStack incident cleanup to run once per hour
-await log.info('Setup BetterStack incident cleanup ...')
-await betterStack.setupCleanup('0 0 * * * *')
+
 // Setup k8s pod restart monitoring to run every minute
 await log.info('Setup k8s pod restart monitoring ...')
-await kubernetes.setupRestartMonitoring('0 * * * * *')
+await global.kubernetes.setupRestartMonitoring('0 * * * * *')
+
 // Connect to Loki
 await log.info('Setup Loki connection ...')
-await loki.connect()
+await global.loki.connect()
 
 // Run basic node health monitoring every minute
 await log.info('Setup chain daemon monitoring ...')
