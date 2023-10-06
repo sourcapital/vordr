@@ -37,6 +37,8 @@ kind: Deployment
 metadata:
   name: vordr
   namespace: thornode
+  labels:
+    app.kubernetes.io/name: vordr
 spec:
   replicas: 1
   strategy:
@@ -44,10 +46,12 @@ spec:
   selector:
     matchLabels:
       app: vordr
+      app.kubernetes.io/name: vordr
   template:
     metadata:
       labels:
         app: vordr
+        app.kubernetes.io/name: vordr
     spec:
       serviceAccountName: vordr
       containers:
