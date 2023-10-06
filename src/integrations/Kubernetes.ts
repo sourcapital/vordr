@@ -12,6 +12,7 @@ declare type K8sPod = {
 }
 
 enum Container {
+    Vordr = 'vordr',
     Bifrost = 'bifrost',
     Gateway = 'gateway',
     Thornode = 'thornode',
