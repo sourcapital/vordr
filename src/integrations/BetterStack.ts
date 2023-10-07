@@ -259,8 +259,8 @@ export class BetterStack {
             if (nextPageUrl) {
                 response = await this.send('GET', 'heartbeats', undefined, nextPageUrl)
             }
-            heartbeats = _.union(heartbeats, response.data.data)
-            nextPageUrl = response.data.pagination.next
+            heartbeats = _.union(heartbeats, response!.data.data)
+            nextPageUrl = response!.data.pagination.next
         } while (nextPageUrl)
 
         return heartbeats
@@ -288,7 +288,7 @@ export class BetterStack {
                 email: false,
                 push: true
             })
-            heartbeat = response.data.data as Heartbeat
+            heartbeat = response!.data.data as Heartbeat
         }
 
         return heartbeat
@@ -304,8 +304,8 @@ export class BetterStack {
             if (nextPageUrl) {
                 response = await this.send('GET', 'heartbeat-groups', undefined, nextPageUrl)
             }
-            heartbeatGroups = _.union(heartbeatGroups, response.data.data)
-            nextPageUrl = response.data.pagination.next
+            heartbeatGroups = _.union(heartbeatGroups, response!.data.data)
+            nextPageUrl = response!.data.pagination.next
         } while (nextPageUrl)
 
         return heartbeatGroups
@@ -326,7 +326,7 @@ export class BetterStack {
             const response = await this.send('POST', 'heartbeat-groups', {
                 name: identifier
             })
-            group = response.data.data as HeartbeatGroup
+            group = response!.data.data as HeartbeatGroup
         }
 
         return group
@@ -363,13 +363,13 @@ export class BetterStack {
             if (nextPageUrl) {
                 response = await this.send('GET', 'incidents?per_page=50', undefined, nextPageUrl)
             }
-            incidents = _.union(incidents, _.filter(response.data.data, (incident) => {
+            incidents = _.union(incidents, _.filter(response!.data.data, (incident) => {
                 const isResolved = incident.attributes.resolved_at != undefined
                 const matchTitle = title ? incident.attributes.name === title : true
                 const matchResolved = resolved !== undefined ? isResolved == resolved : true
                 return matchTitle && matchResolved
             }))
-            nextPageUrl = response.data.pagination.next
+            nextPageUrl = response!.data.pagination.next
         } while (nextPageUrl && (returnEarly ? incidents.length === 0 : true)) // Return early if matching incidents are found
 
         // Sort by date
@@ -380,10 +380,11 @@ export class BetterStack {
         return incidents
     }
 
-    private async send(method: string, endpoint: string, data?: object, nextPageUrl?: string): Promise<AxiosResponse> {
+    private async send(method: string, endpoint: string, data?: object, nextPageUrl?: string): Promise<AxiosResponse | undefined> {
+        let retries = 3
         let response = undefined
 
-        while (true) {
+        while (retries > 0) {
             try {
                 const url = nextPageUrl ? nextPageUrl : `https://uptime.betterstack.com/api/v2/${endpoint}`
 
@@ -408,10 +409,10 @@ export class BetterStack {
                 if (response.status === httpCode) {
                     break
                 } else {
+                    retries -= 1
                     await log.error(`${BetterStack.name}:${this.send.name}: HTTP status code: ${response.status}`)
                 }
             } catch (error) {
-                await handleError(error)
                 await sleep(100)
             }
         }
