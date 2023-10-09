@@ -6,11 +6,7 @@ axios.interceptors.response.use(
     },
     async (error) => {
         if (error.response) {
-            await log.error(`
-                Error occurred for URL: ${error.config.url}\n
-                Error status: ${error.response.status}\n
-                Error headers: ${JSON.stringify(error.response.headers, null, 2)}
-            `)
+            await log.error(`Error (${error.response.status}) occurred for ${error.response.config.method.toUpperCase()} request: ${error.config.url}`)
         } else {
             await log.error(`Error: ${error.message}`)
         }
