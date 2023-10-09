@@ -83,7 +83,7 @@ export class BetterStack {
         new Cron(schedule, async () => {
             const incidents = await global.betterStack!.getIncidents(undefined, true, false)
             const incidentsToDelete = _.sortBy(_.filter(incidents, (incident) => {
-                return incident.attributes.name.includes(config.thornodeAddress!.slice(-4)) // Include incidents from this node only
+                return incident.attributes.name.includes(config.thornodeAddress.slice(-4)) // Include incidents from this node only
             }),(incident) => {
                 return incident.attributes.started_at // Sort by bond (descending)
             }).reverse().slice(50)
@@ -104,7 +104,7 @@ export class BetterStack {
         const existingHeartbeats = await this.getHeartbeats()
 
         for (const type of types) {
-            const identifier = `${name} ${type} (${config.thornodeAddress!.slice(-4)})`
+            const identifier = `${name} ${type} (${config.thornodeAddress.slice(-4)})`
             const exists = _.find(existingHeartbeats, (existingHeartbeat) => {
                 return existingHeartbeat.attributes.name === identifier
             })
@@ -136,7 +136,7 @@ export class BetterStack {
     }
 
     async createRestartIncident(name: string, restartCount: number) {
-        const identifier = `${name} ${IncidentType.RESTART} (${config.thornodeAddress!.slice(-4)})`
+        const identifier = `${name} ${IncidentType.RESTART} (${config.thornodeAddress.slice(-4)})`
         const previousRestarts = this.cache.get(identifier) ?? 0
 
         if (restartCount > previousRestarts) {
@@ -149,7 +149,7 @@ export class BetterStack {
     }
 
     async createSlashPointIncident(name: string, slashPoints: number, threshold: number) {
-        const identifier = `${name} ${IncidentType.SLASH_POINTS} (${config.thornodeAddress!.slice(-4)})`
+        const identifier = `${name} ${IncidentType.SLASH_POINTS} (${config.thornodeAddress.slice(-4)})`
         const previousSlashPoints = this.cache.get(identifier) ?? 0
 
         if (slashPoints > threshold && slashPoints > 2 * previousSlashPoints) {
@@ -162,7 +162,7 @@ export class BetterStack {
     }
 
     async createJailIncident(name: string, currentHeight: number, releaseHeight: number) {
-        const identifier = `${name} ${IncidentType.JAIL} (${config.thornodeAddress!.slice(-4)})`
+        const identifier = `${name} ${IncidentType.JAIL} (${config.thornodeAddress.slice(-4)})`
         const previousReleaseHeight = this.cache.get(identifier) ?? 0
 
         if (currentHeight > previousReleaseHeight && releaseHeight > previousReleaseHeight) {
@@ -177,7 +177,7 @@ export class BetterStack {
     }
 
     async createChainObservationIncident(name: string, blocksBehind: number) {
-        const identifier = `${name} ${IncidentType.CHAIN_OBSERVATION} (${config.thornodeAddress!.slice(-4)})`
+        const identifier = `${name} ${IncidentType.CHAIN_OBSERVATION} (${config.thornodeAddress.slice(-4)})`
         const previousBlocksBehind = this.cache.get(identifier) ?? 0
 
         if (blocksBehind > 2 * previousBlocksBehind) {
@@ -197,7 +197,7 @@ export class BetterStack {
     async resolveIncidents(name: string, type: IncidentType) {
         if (config.nodeENV !== 'production') return
 
-        const identifier = `${name} ${type} (${config.thornodeAddress!.slice(-4)})`
+        const identifier = `${name} ${type} (${config.thornodeAddress.slice(-4)})`
         const incidents = await this.getIncidents(identifier, false, false)
 
         for (const incident of incidents) {
@@ -211,7 +211,7 @@ export class BetterStack {
     }
 
     async deleteIncidents(name: string, type: IncidentType) {
-        const identifier = `${name} ${type} (${config.thornodeAddress!.slice(-4)})`
+        const identifier = `${name} ${type} (${config.thornodeAddress.slice(-4)})`
         let incidents = await this.getIncidents(identifier, undefined, false)
 
         for (const incident of incidents) {
@@ -261,15 +261,15 @@ export class BetterStack {
             if (nextPageUrl) {
                 response = await this.send('GET', 'heartbeats', undefined, nextPageUrl)
             }
-            heartbeats = _.union(heartbeats, response!.data.data)
-            nextPageUrl = response!.data.pagination.next
+            heartbeats = _.union(heartbeats, response.data.data)
+            nextPageUrl = response.data.pagination.next
         } while (nextPageUrl)
 
         return heartbeats
     }
 
     private async getHeartbeat(name: string, type: HeartbeatType): Promise<Heartbeat> {
-        const identifier = `${name} ${type} (${config.thornodeAddress!.slice(-4)})`
+        const identifier = `${name} ${type} (${config.thornodeAddress.slice(-4)})`
 
         const heartbeats = await this.getHeartbeats()
         let heartbeat = _.first(_.filter(heartbeats, (heartbeat) => {
@@ -290,7 +290,7 @@ export class BetterStack {
                 email: false,
                 push: true
             })
-            heartbeat = response!.data.data as Heartbeat
+            heartbeat = response.data.data as Heartbeat
         }
 
         return heartbeat
@@ -306,15 +306,15 @@ export class BetterStack {
             if (nextPageUrl) {
                 response = await this.send('GET', 'heartbeat-groups', undefined, nextPageUrl)
             }
-            heartbeatGroups = _.union(heartbeatGroups, response!.data.data)
-            nextPageUrl = response!.data.pagination.next
+            heartbeatGroups = _.union(heartbeatGroups, response.data.data)
+            nextPageUrl = response.data.pagination.next
         } while (nextPageUrl)
 
         return heartbeatGroups
     }
 
     private async getHeartbeatGroup(name: string): Promise<HeartbeatGroup> {
-        const identifier = `${name} (${config.thornodeAddress!.slice(-4)})`
+        const identifier = `${name} (${config.thornodeAddress.slice(-4)})`
 
         const groups = await this.getHeartbeatGroups()
         let group = _.first(_.filter(groups, (group) => {
@@ -328,7 +328,7 @@ export class BetterStack {
             const response = await this.send('POST', 'heartbeat-groups', {
                 name: identifier
             })
-            group = response!.data.data as HeartbeatGroup
+            group = response.data.data as HeartbeatGroup
         }
 
         return group
@@ -365,13 +365,13 @@ export class BetterStack {
             if (nextPageUrl) {
                 response = await this.send('GET', 'incidents?per_page=50', undefined, nextPageUrl)
             }
-            incidents = _.union(incidents, _.filter(response!.data.data, (incident) => {
-                const isResolved = incident.attributes.resolved_at != undefined
+            incidents = _.union(incidents, _.filter(response.data.data, (incident) => {
+                const isResolved = incident.attributes.resolved_at !== undefined
                 const matchTitle = title ? incident.attributes.name === title : true
                 const matchResolved = resolved !== undefined ? isResolved == resolved : true
                 return matchTitle && matchResolved
             }))
-            nextPageUrl = response!.data.pagination.next
+            nextPageUrl = response.data.pagination.next
         } while (nextPageUrl && (returnEarly ? incidents.length === 0 : true)) // Return early if matching incidents are found
 
         // Sort by date
@@ -382,11 +382,10 @@ export class BetterStack {
         return incidents
     }
 
-    private async send(method: string, endpoint: string, data?: object, nextPageUrl?: string): Promise<AxiosResponse | undefined> {
-        let retries = 3
+    private async send(method: string, endpoint: string, data?: object, nextPageUrl?: string): Promise<AxiosResponse> {
         let response = undefined
 
-        while (retries > 0) {
+        while (true) {
             try {
                 const url = nextPageUrl ? nextPageUrl : `https://uptime.betterstack.com/api/v2/${endpoint}`
 
@@ -411,7 +410,6 @@ export class BetterStack {
                 if (response.status === httpCode) {
                     break
                 } else {
-                    retries -= 1
                     await log.error(`${BetterStack.name}:${this.send.name}: HTTP status code: ${response.status}`)
                 }
             } catch (error) {
