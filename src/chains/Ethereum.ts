@@ -50,13 +50,13 @@ export class Ethereum extends Node {
         let apiUrl: string
         switch (this.chain) {
             case Chain.Ethereum:
-                apiUrl = 'https://ethereum.ninerealms.com'
+                apiUrl = 'https://eth.llamarpc.com'
                 break
             case Chain.Avalanche:
-                apiUrl = 'https://avalanche.ninerealms.com/ext/bc/C/rpc'
+                apiUrl = 'https://avalanche.drpc.org'
                 break
             case Chain.BinanceSmart:
-                apiUrl = 'https://binance-smart.ninerealms.com'
+                apiUrl = 'https://binance.llamarpc.com'
                 break
         }
 

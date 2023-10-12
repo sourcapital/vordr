@@ -49,20 +49,20 @@ export class Cosmos extends Node {
         let apiUrl: string
         switch (this.chain) {
             case Chain.Cosmos:
-                apiUrl = 'https://gaia.ninerealms.com/status'
+                apiUrl = 'https://cosmos-rpc.publicnode.com:443'
                 break
             case Chain.Binance:
-                apiUrl = 'https://binance.ninerealms.com/status'
+                apiUrl = 'https://dataseed1.bnbchain.org:443'
                 break
             case Chain.Thorchain:
-                apiUrl = 'https://rpc.ninerealms.com/status'
+                apiUrl = 'https://rpc.ninerealms.com'
                 break
         }
 
         // Await all time critical request together to minimize any delay (e.g. difference in block height)
         const [nodeResponse, apiResponse] = await Promise.all([
             safeAxiosGet(`${this.url}/status`),
-            safeAxiosGet(apiUrl)
+            safeAxiosGet(`${apiUrl}/status`)
         ])
 
         if (nodeResponse?.status !== 200) {
