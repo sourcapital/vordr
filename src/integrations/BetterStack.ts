@@ -366,7 +366,7 @@ export class BetterStack {
                 response = await this.send('GET', 'incidents?per_page=50', undefined, nextPageUrl)
             }
             incidents = _.union(incidents, _.filter(response.data.data, (incident) => {
-                const isResolved = incident.attributes.resolved_at !== undefined
+                const isResolved = incident.attributes.resolved_at !== null
                 const matchTitle = title ? incident.attributes.name === title : true
                 const matchResolved = resolved !== undefined ? isResolved == resolved : true
                 return matchTitle && matchResolved
