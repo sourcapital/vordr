@@ -18,7 +18,7 @@
     "@kubernetes/client-node": "^0.18.1",
     "@logtail/node": "^0.4.6",
     "@logtail/types": "^0.4.6",
-    "@types/numeral": "^2.0.2",
+    "@types/numeral": "^2.0.4",
     "@types/underscore": "^1.11.5",
     "@types/ws": "^8.5.5",
     "axios": "^1.4.0",
