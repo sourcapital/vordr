@@ -19,7 +19,7 @@
     "@logtail/node": "^0.4.6",
     "@logtail/types": "^0.4.6",
     "@types/numeral": "^2.0.2",
-    "@types/underscore": "^1.11.5",
+    "@types/underscore": "^1.11.15",
     "@types/ws": "^8.5.5",
     "axios": "^1.4.0",
     "cron": "^2.4.3",
