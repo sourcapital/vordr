@@ -183,7 +183,7 @@ export class BetterStack {
         if (Math.abs(blocksDiff) > Math.abs(2 * previousBlocksDiff)) {
             await this.createIncident(
                 `${identifier}`,
-                `${name} is ${numeral(blocksDiff).format('0,0')} blocks ${blocksDiff < 0 ? 'behind' : 'ahead'} the majority observation of the network!`
+                `${name} is ${numeral(blocksDiff).format('0,0')} block(s) ${blocksDiff < 0 ? 'behind' : 'ahead'} the majority observation of the network!`
             )
             this.cache.set(identifier, blocksDiff)
         }

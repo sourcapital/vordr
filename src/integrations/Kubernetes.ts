@@ -16,7 +16,6 @@ enum Container {
     Bifrost = 'bifrost',
     Gateway = 'gateway',
     Thornode = 'thornode',
-    Binance = 'binance-daemon',
     Bitcoin = 'bitcoin-daemon',
     Ethereum = 'ethereum-daemon',
     Litecoin = 'litecoin-daemon',

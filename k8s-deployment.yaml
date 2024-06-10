@@ -71,8 +71,6 @@ spec:
               value: 'http://thornode.thornode:1317'
             - name: NODE_ENDPOINT_THORCHAIN
               value: 'http://thornode.thornode:27147'
-            - name: NODE_ENDPOINT_BINANCE
-              value: 'http://binance-daemon.thornode:27147'
             - name: NODE_ENDPOINT_BITCOIN
               value: 'http://thorchain:password@bitcoin-daemon.thornode:8332'
             - name: NODE_ENDPOINT_ETHEREUM
