@@ -6,7 +6,6 @@ import {Loki} from './integrations/Loki.js'
 import {Kubernetes} from './integrations/Kubernetes.js'
 import {BetterStack} from './integrations/BetterStack.js'
 import {Thornode} from './chains/Thornode.js'
-import {Binance} from './chains/Binance.js'
 import {Bitcoin} from './chains/Bitcoin.js'
 import {Ethereum} from './chains/Ethereum.js'
 import {Litecoin} from './chains/Litecoin.js'
@@ -30,7 +29,6 @@ if (config.betterStack.uptime.apiKey) {
 // Init nodes
 const nodes = [
     new Thornode(config.nodeEndpoint.thornode, config.nodeEndpoint.thorchain),
-    new Binance(config.nodeEndpoint.binance),
     new Bitcoin(config.nodeEndpoint.bitcoin),
     new Ethereum(config.nodeEndpoint.ethereum),
     new Litecoin(config.nodeEndpoint.litecoin),

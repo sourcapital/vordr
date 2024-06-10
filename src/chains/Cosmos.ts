@@ -4,7 +4,6 @@ import {HeartbeatType} from '../integrations/BetterStack.js'
 
 export enum Chain {
     Cosmos = 'cosmos',
-    Binance = 'binance',
     Thorchain = 'thorchain'
 }
 
@@ -51,9 +50,6 @@ export class Cosmos extends Node {
             case Chain.Cosmos:
                 apiUrl = 'https://cosmos-rpc.publicnode.com:443'
                 break
-            case Chain.Binance:
-                apiUrl = 'https://dataseed1.bnbchain.org:443'
-                break
             case Chain.Thorchain:
                 apiUrl = 'https://rpc.ninerealms.com'
                 break
@@ -88,8 +84,7 @@ export class Cosmos extends Node {
         await log.info(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight = ${nodeBlockHeight}; apiBlockHeight = ${apiBlockHeight}`)
 
         // Check if node is behind the api block height (some block behind is ok due to network latency)
-        const gradePeriod = this.chain == Chain.Binance ? 3 : 1
-        if (nodeBlockHeight < apiBlockHeight - gradePeriod) {
+        if (nodeBlockHeight < apiBlockHeight - 1) {
             await log.warn(`${getChainName(this.chain)}:${this.isSynced.name}: nodeBlockHeight < apiBlockHeight: ${nodeBlockHeight} < ${apiBlockHeight}`)
             return false
         }

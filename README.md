@@ -20,7 +20,7 @@ A monitoring application for THORNodes.
 |----------|--------------------------------------------------------------------|
 | Bitcoin  | Bitcoin (BTC), Litecoin (LTC), Bitcoin Cash (BCH), Dogecoin (DOGE) |
 | Ethereum | Ethereum (ETH), Avalanche (AVAX), Binance Smart (BSC)              |
-| Cosmos   | Cosmos (ATOM), Binance (BNB), THORChain (RUNE)                     |
+| Cosmos   | Cosmos (ATOM), THORChain (RUNE)                                    |
 
 ## Environment Variables
 
@@ -32,7 +32,6 @@ A monitoring application for THORNodes.
 | THORNODE_ADDRESS            | Yes      | Set to the address of your THORNode (`thor...`).                                                                                                         |
 | NODE_ENDPOINT_THORNODE      | Yes      | THORNode endpoint (e.g. http://thornode.thornode:1317).                                                                                                  |
 | NODE_ENDPOINT_THORCHAIN     | Yes      | THORChain endpoint (e.g. http://thornode.thornode:27147).                                                                                                |
-| NODE_ENDPOINT_BINANCE_CHAIN | Yes      | Binance endpoint (e.g. http://binance-daemon.thornode:27147).                                                                                            |
 | NODE_ENDPOINT_BITCOIN       | Yes      | Bitcoin endpoint (e.g. [http://thorchain:password@bitcoin-daemon.thornode:8332](http://thorchain:password@bitcoin-daemon.thornode:8332)).                |
 | NODE_ENDPOINT_ETHEREUM      | Yes      | Ethereum endpoint (e.g. http://ethereum-daemon.thornode:8545).                                                                                           |
 | NODE_ENDPOINT_LITECOIN      | Yes      | Litecoin endpoint (e.g. [http://thorchain:password@litecoin-daemon.thornode:9332](http://thorchain:password@litecoin-daemon.thornode:9332)).             |
@@ -120,7 +119,7 @@ Sign up at [betterstack.com](https://logs.betterstack.com/?ref=8l7f) and follow 
 ```
 MIT License
 
-Copyright (c) 2023 Sour Capital Pte. Ltd.
+Copyright (c) 2024 Sour Capital Pte. Ltd.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

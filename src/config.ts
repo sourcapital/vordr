@@ -12,7 +12,6 @@ export const config = {
     nodeEndpoint: {
         thornode: process.env.NODE_ENDPOINT_THORNODE!,
         thorchain: process.env.NODE_ENDPOINT_THORCHAIN!,
-        binance: process.env.NODE_ENDPOINT_BINANCE!,
         bitcoin: process.env.NODE_ENDPOINT_BITCOIN!,
         ethereum: process.env.NODE_ENDPOINT_ETHEREUM!,
         litecoin: process.env.NODE_ENDPOINT_LITECOIN!,
