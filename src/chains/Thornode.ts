@@ -273,9 +273,9 @@ export class Thornode extends Cosmos {
             }))
 
             // Alert if node is behind on chain observations only every 10 minutes, but resolve every minute
-            if (observedHeight < latestObservedHeightConsensus && moment().minutes() % 10 === 0) {
-                const diff = latestObservedHeightConsensus - observedHeight
-                await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${diff} blocks behind the majority observation of the network! (observedHeight = ${observedHeight}, latestObservedHeightConsensus = ${latestObservedHeightConsensus})`)
+            if (observedHeight !== latestObservedHeightConsensus && moment().minutes() % 10 === 0) {
+                const diff = observedHeight - latestObservedHeightConsensus
+                await log.info(`${Thornode.name}:ChainObservation: ${chain} is ${Math.abs(diff)} blocks ${diff < 0 ? 'behind' : 'ahead'} the majority observation of the network! (observedHeight = ${observedHeight}, latestObservedHeightConsensus = ${latestObservedHeightConsensus})`)
 
                 await global.betterStack?.createChainObservationIncident(chain, diff)
             } else {

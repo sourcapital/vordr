@@ -176,16 +176,16 @@ export class BetterStack {
         }
     }
 
-    async createChainObservationIncident(name: string, blocksBehind: number) {
+    async createChainObservationIncident(name: string, blocksDiff: number) {
         const identifier = `${name} ${IncidentType.CHAIN_OBSERVATION} (${config.thornodeAddress.slice(-4)})`
-        const previousBlocksBehind = this.cache.get(identifier) ?? 0
+        const previousBlocksDiff = this.cache.get(identifier) ?? 0
 
-        if (blocksBehind > 2 * previousBlocksBehind) {
+        if (Math.abs(blocksDiff) > Math.abs(2 * previousBlocksDiff)) {
             await this.createIncident(
                 `${identifier}`,
-                `${name} is ${numeral(blocksBehind).format('0,0')} blocks behind the majority observation of the network!`
+                `${name} is ${numeral(blocksDiff).format('0,0')} blocks ${blocksDiff < 0 ? 'behind' : 'ahead'} the majority observation of the network!`
             )
-            this.cache.set(identifier, blocksBehind)
+            this.cache.set(identifier, blocksDiff)
         }
     }
 
