@@ -148,9 +148,9 @@ export class BetterStack {
                 `${identifier}`,
                 `${name} pod restarted! (reason: ${pod.restartReason}, count: ${numeral(pod.restarts).format('0,0')})`
             )
-        }
 
-        this.cache.set(identifier, pod.restarts)
+            this.cache.set(identifier, pod.restarts)
+        }
     }
 
     async createSlashPointIncident(name: string, slashPoints: number, threshold: number) {
