@@ -11,6 +11,7 @@ export class Loki {
     async connect() {
         if (config.nodeENV !== 'production') return
 
+        await log.info('Setup Loki connection ...')
         await log.debug(`${Loki.name}: Connecting ...`)
 
         const host = config.nodeENV === 'production' ? 'loki.loki-system' : 'localhost'

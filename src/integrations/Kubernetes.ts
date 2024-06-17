@@ -1,14 +1,17 @@
 import _ from 'underscore'
+import moment from 'moment'
 import k8s, {KubeConfig} from '@kubernetes/client-node'
 import {config} from '../config.js'
 import {Cron} from '../helpers/Cron.js'
 import {IncidentType} from './BetterStack.js'
 
-declare type K8sPod = {
+export declare type K8sPod = {
     name: string,
     namespace: string,
     container: Container,
-    restarts: number
+    restarts: number,
+    restartReason: string | undefined,
+    lastRestartTime: moment.Moment | undefined
 }
 
 enum Container {
@@ -38,7 +41,7 @@ export class Kubernetes {
         this.k8sConfig = new k8s.KubeConfig()
 
         if (config.nodeENV === 'production') {
-            this.k8sConfig.loadFromCluster()
+            this.k8sConfig.loadFromDefault()
         } else {
             this.k8sConfig.loadFromDefault()
         }
@@ -48,6 +51,8 @@ export class Kubernetes {
 
     async setupRestartMonitoring(schedule: string) {
         if (config.nodeENV !== 'production') return
+
+        await log.info('Setup k8s pod restart monitoring ...')
 
         new Cron(schedule, async () => {
             const pods = await this.getPods('thornode')
@@ -66,7 +71,7 @@ export class Kubernetes {
             await global.betterStack?.resolveIncidents(getContainerName(pod.container), IncidentType.RESTART)
 
             // Create new restart incident
-            await global.betterStack?.createRestartIncident(getContainerName(pod.container), pod.restarts)
+            await global.betterStack?.createRestartIncident(getContainerName(pod.container), pod)
         }
     }
 
@@ -74,15 +79,15 @@ export class Kubernetes {
         const response = await this.k8sApi.listNamespacedPod(namespace)
 
         return _.map(response.body.items, (pod) => {
+            const containerStatus = pod.status!.containerStatuses![0]
+
             return {
                 name: pod.metadata!.name!,
                 namespace: namespace,
                 container: pod.metadata!.labels!['app.kubernetes.io/name'] as Container,
-                restarts: _.reduce(_.map(pod.status!.containerStatuses!, (status) => {
-                    return status.restartCount
-                }), (a, b) => {
-                    return a + b
-                }) ?? 0
+                restarts: containerStatus.restartCount,
+                restartReason: containerStatus.lastState!.terminated?.reason,
+                lastRestartTime: containerStatus.lastState!.terminated?.finishedAt ? moment(containerStatus.lastState!.terminated?.finishedAt) : undefined
             }
         })
     }

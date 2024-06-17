@@ -47,16 +47,13 @@ if (global.betterStack) {
         await node.initHeartbeats()
     }
     // Setup BetterStack incident cleanup to run once per hour
-    await log.info('Setup BetterStack incident cleanup ...')
     await global.betterStack.setupCleanup('0 0 * * * *')
 }
 
 // Setup k8s pod restart monitoring to run every minute
-await log.info('Setup k8s pod restart monitoring ...')
 await global.kubernetes.setupRestartMonitoring('0 * * * * *')
 
 // Connect to Loki
-await log.info('Setup Loki connection ...')
 await global.loki.connect()
 
 // Run basic node health monitoring every minute

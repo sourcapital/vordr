@@ -2,6 +2,7 @@ import _ from 'underscore'
 import moment from 'moment'
 import numeral from 'numeral'
 import {config} from '../config.js'
+import {K8sPod} from './Kubernetes.js'
 import {Cron} from '../helpers/Cron.js'
 import axios, {AxiosResponse} from 'axios'
 import {handleError} from '../helpers/Error.js'
@@ -80,6 +81,8 @@ export class BetterStack {
     async setupCleanup(schedule: string) {
         if (config.nodeENV !== 'production') return
 
+        await log.info('Setup BetterStack incident cleanup ...')
+
         new Cron(schedule, async () => {
             const incidents = await global.betterStack!.getIncidents(undefined, true, false)
             const incidentsToDelete = _.sortBy(_.filter(incidents, (incident) => {
@@ -135,17 +138,19 @@ export class BetterStack {
         }
     }
 
-    async createRestartIncident(name: string, restartCount: number) {
+    async createRestartIncident(name: string, pod: K8sPod) {
         const identifier = `${name} ${IncidentType.RESTART} (${config.thornodeAddress.slice(-4)})`
         const previousRestarts = this.cache.get(identifier) ?? 0
+        const lastRestartMinutesAgo = moment().diff(pod.lastRestartTime, 'minutes')
 
-        if (restartCount > previousRestarts) {
+        if (pod.restarts > previousRestarts && lastRestartMinutesAgo < 10) {
             await this.createIncident(
                 `${identifier}`,
-                `${name} pod restarted! (total: ${numeral(restartCount).format('0,0')})`
+                `${name} pod restarted! (reason: ${pod.restartReason}, count: ${numeral(pod.restarts).format('0,0')})`
             )
-            this.cache.set(identifier, restartCount)
         }
+
+        this.cache.set(identifier, pod.restarts)
     }
 
     async createSlashPointIncident(name: string, slashPoints: number, threshold: number) {
