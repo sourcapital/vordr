@@ -41,7 +41,7 @@ export class Kubernetes {
         this.k8sConfig = new k8s.KubeConfig()
 
         if (config.nodeENV === 'production') {
-            this.k8sConfig.loadFromDefault()
+            this.k8sConfig.loadFromCluster()
         } else {
             this.k8sConfig.loadFromDefault()
         }
